@@ -1,0 +1,54 @@
+body {
+    background-color: pink;
+}
+
+.header  {
+    display: flex;
+
+}
+
+.top_row .top_left {
+    display: inline flex  ;
+    flex-direction: row;
+
+
+    list-style: none;
+
+}
+
+.top_row .top_right {
+    display: inline flex;
+    flex-direction: row;
+    justify-content: flex-end;
+
+    list-style: none;
+
+
+}
+
+
+nav .top_left li {
+    padding: 15px;
+    margin: 5px;
+    background-color: green;
+    border: solid 3px;
+
+    justify-content: flex-start;
+
+}
+
+nav .top_right li {
+    padding: 15px;
+    margin: 5px;
+    background-color: green;
+    border: solid 3px;
+    
+    
+
+}
+
+/*.header {
+
+    background-color: grey;
+
+}*/
