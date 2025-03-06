@@ -1,5 +1,5 @@
 body {
-    background-color: pink;
+    background-color: white;
 }
 
 .header  {
@@ -52,3 +52,16 @@ nav .top_right li {
     background-color: grey;
 
 }*/
+
+
+.footer_1 {
+    position: sticky;
+    text-align: center;
+    width: 100%;
+}
+
+.footer_1_navbar {
+    
+}
+
+
