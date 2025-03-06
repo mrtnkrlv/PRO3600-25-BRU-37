@@ -1,5 +1,8 @@
 body {
     background-color: pink;
+    overflow-y: scroll;
+    height: 100vh;
+    height: fit-content;
 }
 
 .header  {
@@ -23,7 +26,6 @@ body {
 
     list-style: none;
 
-
 }
 
 
@@ -42,13 +44,32 @@ nav .top_right li {
     margin: 5px;
     background-color: green;
     border: solid 3px;
-    
-    
 
 }
 
-/*.header {
+.sticky_header {
+    position: sticky;
+    top: 0;
+    background-color: red;
+    padding: 20px;
+    border: solid 2px;
+    display: block;
+    margin: -8px;
 
-    background-color: grey;
+}
 
-}*/
+.text_middle {
+    display: flex;
+    padding-bottom: 5000px;
+    border: solid 3px;
+    background-color: aquamarine;
+    justify-content: center;
+    align-items: flex-end;
+
+} 
+
+#logo {
+    width: 75px;
+    height: auto;
+}
+
