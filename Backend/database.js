@@ -11,15 +11,15 @@ const pool = mysql.createPool({
 }).promise()
 
 async function getElt(id){
-    const result = await pool.query(`
+    const [result] = await pool.query(`
         SELECT *
         FROM mainTbl
         WHERE id = ?
     `, [id])
-    return result[0]
+    return result
 }
 
-const result = await getElt(0)
+const result = await getElt(1)
 
 console.log(result)
 
