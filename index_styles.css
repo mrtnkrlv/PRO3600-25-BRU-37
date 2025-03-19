@@ -60,7 +60,7 @@ nav .top_right li {
 
 .text_middle {
     display: flex;
-    padding-bottom: 5000px;
+    padding-bottom: 1000px;
     border: solid 3px;
     background-color: aquamarine;
     justify-content: center;
