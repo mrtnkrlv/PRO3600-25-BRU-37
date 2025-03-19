@@ -10,6 +10,8 @@ const pool = mysql.createPool({
     database: process.env.MYSQL_DATABASE
 }).promise()
 
+export default pool;
+
 async function getElt(id){
     const [result] = await pool.query(`
         SELECT *
