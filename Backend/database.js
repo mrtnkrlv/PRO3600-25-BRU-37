@@ -18,8 +18,3 @@ async function getElt(id){
     `, [id])
     return result
 }
-
-const result = await getElt(1)
-
-console.log(result)
-
