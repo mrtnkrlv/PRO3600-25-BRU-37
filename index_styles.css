@@ -1,8 +1,12 @@
 body {
+<<<<<<< HEAD
     background-color: pink;
     overflow-y: scroll;
     height: 100vh;
     height: fit-content;
+=======
+    background-color: white;
+>>>>>>> origin/footer_interface
 }
 
 .header  {
@@ -73,3 +77,20 @@ nav .top_right li {
     height: auto;
 }
 
+<<<<<<< HEAD
+=======
+}*/
+
+
+.footer_1 {
+    position: sticky;
+    text-align: center;
+    width: 100%;
+}
+
+.footer_1_navbar {
+    
+}
+
+
+>>>>>>> origin/footer_interface
