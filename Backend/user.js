@@ -35,6 +35,15 @@ async function modifyUsername(id, username){
     return result 
 }
 
+async function modifyPassword(id, currentpassword, newpassword){
+    const [result] = await pool.query(`
+        UPDATE user
+        SET password = ?
+        WHERE id = ? AND password = ?;
+        `,[newpassword, id, currentpassword])
+    return result 
+}
+
 const createPaul = await createUser("paul.emptoz@telecom-sudparis.eu", "modepassestylé", "Paulo")
 console.log(createPaul)
 
@@ -43,7 +52,13 @@ const modifyPaul = await modifyUsername("paul.emptoz@telecom-sudparis.eu", "Paul
 const getPaul = await getUser("paul.emptoz@telecom-sudparis.eu")
 console.log(getPaul)
 
+const modifypasswordPaul = await modifyPassword("paul.emptoz@telecom-sudparis.eu", "modepassestylé", "nouveaumdpstylé")
+const getPaul2 = await getUser("paul.emptoz@telecom-sudparis.eu")
+console.log(getPaul2)
+
 const deletePaul = await deleteUser("paul.emptoz@telecom-sudparis.eu")
 console.log("L'utilisateur a été supprimé")
+
+
 
 process.exit() 
