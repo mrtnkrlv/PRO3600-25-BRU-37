@@ -39,11 +39,11 @@ const createPaul = await createUser("paul.emptoz@telecom-sudparis.eu", "modepass
 console.log(createPaul)
 
 
-//const deletePaul = await deleteUser("paul.emptoz@telecom-sudparis.eu")
-//console.log("L'utilisateur a été supprimé")
-
 const modifyPaul = await modifyUsername("paul.emptoz@telecom-sudparis.eu", "Paulochon")
 const getPaul = await getUser("paul.emptoz@telecom-sudparis.eu")
 console.log(getPaul)
+
+const deletePaul = await deleteUser("paul.emptoz@telecom-sudparis.eu")
+console.log("L'utilisateur a été supprimé")
 
 process.exit() 
