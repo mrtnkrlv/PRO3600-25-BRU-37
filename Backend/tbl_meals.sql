@@ -5,5 +5,5 @@ USE mainDb;
 CREATE TABLE meals (
     mealId INTEGER PRIMARY KEY,
     mealName VARCHAR(255) NOT NULL,
-    positionInWeek INTEGER, -- Between 1 and 5, represents day of the week (meals are refreshed weekly)
+    positionInWeek INTEGER -- Between 1 and 5, represents day of the week (meals are refreshed weekly)
 );
