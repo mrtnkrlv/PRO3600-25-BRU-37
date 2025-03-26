@@ -14,3 +14,5 @@ CREATE TABLE commentary (
     FOREIGN KEY (userId) REFERENCES user(id),
     FOREIGN KEY (commentaryParentId) REFERENCES commentary(commentaryId) 
 );
+
+
