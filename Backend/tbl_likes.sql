@@ -5,5 +5,5 @@ CREATE TABLE likes (
     userId VARCHAR(255) NOT NULL,  
     mealId INTEGER NOT NULL,
     FOREIGN KEY (userId) REFERENCES user(id),
-    FOREIGN KEY (mealId) REFERENCES meals(mealId)
+    FOREIGN KEY (mealId) REFERENCES meals(mealId);
 );
