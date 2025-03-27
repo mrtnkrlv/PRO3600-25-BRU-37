@@ -15,4 +15,4 @@
 
 ### Prochaine réunion 
 
-Mardi 8 avril 14h
+Vendredi 11 avril 9h15
