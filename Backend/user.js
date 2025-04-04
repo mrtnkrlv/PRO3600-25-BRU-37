@@ -56,8 +56,8 @@ const modifypasswordPaul = await modifyPassword("paul.emptoz@telecom-sudparis.eu
 const getPaul2 = await getUser("paul.emptoz@telecom-sudparis.eu")
 console.log(getPaul2)
 
-const deletePaul = await deleteUser("paul.emptoz@telecom-sudparis.eu")
-console.log("L'utilisateur a été supprimé")
+//const deletePaul = await deleteUser("paul.emptoz@telecom-sudparis.eu")
+//console.log("L'utilisateur a été supprimé")
 
 
 
