@@ -134,7 +134,7 @@ async function addLikeToComment(commentId, userId, mealId) {
 // Fonction principale pour tester
 (async () => {
   try {
-    const like1 = await addLikeToComment(8, "paul.emptoz@telecom-sudparis.eu", 1);
+    const like1 = await addLikeToComment(7, "paul.emptoz@telecom-sudparis.eu", 1);
 
     if (like1) {
       console.log("Like créé :", like1);

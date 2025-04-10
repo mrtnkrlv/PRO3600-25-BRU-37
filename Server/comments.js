@@ -1,14 +1,18 @@
 import pool from './database.js';
 
-async function getComment(commentId){
-    const [result] = await pool.query(`
-        SELECT *
-        FROM comments
-        WHERE commentId = ?
-    `, [commentId])
-    return result 
+async function getComment(commentId) {
+    try {
+        const [result] = await pool.query(`
+            SELECT *
+            FROM comments
+            WHERE commentId = ?
+        `, [commentId]);
+        return result[0]; // Retourne le premier résultat (un seul commentaire)
+    } catch (error) {
+        console.error(`Erreur lors de la récupération du commentaire ${commentId} : ${error.message}`);
+        throw error; // Propagation de l'erreur pour gestion en amont
+    }
 }
-
 
 async function createComment(mealId, userId, content, commentParentId){ /* The other attributes should be 
     initialized automatically and commentaryParentId is optional */
@@ -35,9 +39,15 @@ async function getCommentsByMeal(mealId) {
 }
 
 async function getCommentsByUser(userId) {
-    const query = `SELECT * FROM comments WHERE userId = ?`;
-    const [tab] = await pool.query(query, [userId]);
-    return tab;
+    try {
+        const [result] = await pool.query(`
+            SELECT * FROM comments WHERE commentId = ?
+        `, [commentId]);
+        return result[0];
+    } catch (error) {
+        console.error(`Erreur lors de la récupération du commentaire : ${error.message}`);
+        throw error;
+    }
 }
   
 async function updateComment(commentId, newContent) {
@@ -47,13 +57,18 @@ async function updateComment(commentId, newContent) {
 }
 
 
-// Exemple
+// Exemple d'utilisation des fonctions
 
+(async () => {
+    try {
+        // Création d'un nouveau commentaire (sans parent)
+        const createNewComment1 = await createComment(1, "paul.emptoz@telecom-sudparis.eu",null, "Le couscous était super !");
+        console.log("Nouveau commentaire créé :", createNewComment1);
 
-const createNewComment1 = await createComment(1, "paul.emptoz@telecom-sudparis.eu", null,"Le couscous était super !")
-console.log(createNewComment1)
-
-
-const deleteComment1 = await deleteComment(9)  /* The comment ID is needed to delete it, 
-but it's not that easy for the user to find..." */
-console.log(deleteComment1)
+        // Suppression d'un commentaire par son ID
+        const deleteComment1 = await deleteComment(9);
+        console.log("Résultat de la suppression :", deleteComment1);
+    } catch (error) {
+        console.error("Une erreur est survenue :", error.message);
+    }
+})();
