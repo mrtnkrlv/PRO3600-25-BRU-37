@@ -10,10 +10,13 @@ CREATE TABLE meals (
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     positionInWeek INTEGER -- Between 1 and 5, represents day of the week (meals are refreshed weekly)
     averageRating DECIMAL(3,2) DEFAULT 0.00,
     ratingCount INT DEFAULT 0   
 =======
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
 =======
