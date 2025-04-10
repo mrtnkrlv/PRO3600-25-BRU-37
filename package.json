@@ -1,24 +1,22 @@
 {
-  "dependencies": {
-    "mysql": "^2.18.1",
-    "mysql2": "^3.14.0"
-  },
-  "name": "pro3600-25-bru-37",
-  "description": "Projet informatique PRO3600 -- Loris Serieys, Paul Emptoz, Lucas Charbonnier, Martin Kirilov-Lilov.",
-  "version": "1.0.0",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Paulito1546/PRO3600-25-BRU-37.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/Paulito1546/PRO3600-25-BRU-37/issues"
-  },
-  "homepage": "https://github.com/Paulito1546/PRO3600-25-BRU-37#readme"
-}
+    "dependencies": {
+      "dotenv": "^16.4.7",
+      "mysql2": "^3.14.0",
+      "express": "^5.1.0"
+    },
+    "devDependencies": {
+      "nodemon": "^3.1.9"
+    },
+    "name": "backend",
+    "version": "1.0.0",
+    "main": "app.js",
+    "type": "module",
+    "scripts": {
+      "test": "echo \"Error: no test specified\" && exit 1",
+      "dev": "npx nodemon app.js"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "description": ""
+  }
