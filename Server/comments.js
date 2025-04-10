@@ -15,7 +15,7 @@ async function createComment(mealId, userId, content, commentParentId){ /* The o
     const [result] = await pool.query(`   
         INSERT INTO comments (mealId, userId, content, commentParentId)
         VALUES (?, ?, ?, ?)
-    `, [mealId, userId, content, commentParentId])
+    `, [mealId, userId, commentParentId, content])
     const commentId = await result.insertId
     return getComment(commentId)// insertId return the generated ID
 }
@@ -40,12 +40,14 @@ async function getCommentsByUser(userId) {
     return tab;
 }
   
-async function updateCommentary(commentsId, newContent) {
+async function updateComment(commentId, newContent) {
     const query = `UPDATE comments SET content = ? WHERE commentsId = ?`;
     await pool.query(query, [newContent, commentId]);
     return { message: 'Comments updated successfuly' };
 }
 
+
+// Exemple
 
 
 const createNewComment1 = await createComment(1, "paul.emptoz@telecom-sudparis.eu", "Le couscous était super !")
