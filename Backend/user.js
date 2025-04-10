@@ -44,6 +44,16 @@ async function modifyPassword(id, currentpassword, newpassword){
     return result 
 }
 
+// Vérifie si l'utilisateur existe
+const [userExists] = await pool.query(`
+    SELECT * FROM user WHERE id = ?
+  `, [userId]);
+  
+  if (userExists.length === 0) {
+    throw new Error("Utilisateur introuvable !");
+  }
+  
+
 const createPaul = await createUser("paul.emptoz@telecom-sudparis.eu", "modepassestylé", "Paulo")
 console.log(createPaul)
 

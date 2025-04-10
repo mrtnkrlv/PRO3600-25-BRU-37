@@ -1,5 +1,9 @@
 import pool from './database.js';
 
+import { addMeal } from './meals.js';
+
+
+
 async function addLikeToMeal(mealId, userId) {
     // Vérifier si le plat existe
     const [mealExists] = await pool.query(`
@@ -89,6 +93,23 @@ async function removeLikeFromMeal(mealId, userId) {
 }
 
 
+async function ClassifyMeals() {
+    const [rows] = await pool.query(`
+        SELECT mealName, likes, positionInWeek
+        FROM meals
+        WHERE positionInWeek BETWEEN 1 AND 5
+        ORDER BY likes ASC;
+    `);
+
+    // Affichage dans la console
+    console.log("Plats de la semaine (du moins au plus liké) :");
+    rows.forEach(meal => {
+    console.log(`- ${meal.mealName} (${meal.likes} likes, Jour ${meal.positionInWeek})`);
+    return rows;
+    });
+}
+
+
 // Exemple d'utilisation
 async function main() {
     const result = await addLikeToMeal(1, "paul.emptoz@telecom-sudparis.eu");
@@ -109,6 +130,13 @@ async function main() {
     }
     
     pool.end(); // Fermer le pool de connexions
+
 }
 
-main();
+
+
+const result = await ClassifyMeals();
+console.log(result);
+
+process.exit();
+
