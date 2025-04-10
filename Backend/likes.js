@@ -1,4 +1,6 @@
 import pool from './database.js';
+import { addMeal } from './meals.js';
+
 
 async function addLikeToMeal(mealId, userId) {
     // Vérifier si le plat existe
@@ -127,6 +129,7 @@ async function main() {
     pool.end(); // Fermer le pool de connexions
 
 }
+
 
 
 const result = await ClassifyMeals();
