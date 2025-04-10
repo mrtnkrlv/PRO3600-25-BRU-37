@@ -57,7 +57,7 @@ async function removeLikeFromMeal(mealId, userId) {
     // Vérifier si le plat existe
     const [mealExists] = await pool.query(`
         SELECT * FROM meals WHERE mealId = ?
-    `, [mealId]);
+    `, [mealId]);   
 
     if (mealExists.length === 0) {
         console.log("Plat introuvable");
