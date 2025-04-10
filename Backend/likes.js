@@ -1,5 +1,7 @@
 import pool from './database.js';
+
 import { addMeal } from './meals.js';
+
 
 
 async function addLikeToMeal(mealId, userId) {
@@ -90,6 +92,7 @@ async function removeLikeFromMeal(mealId, userId) {
     return { success: true, message: "Like retiré avec succès" };
 }
 
+
 async function ClassifyMeals() {
     const [rows] = await pool.query(`
         SELECT mealName, likes, positionInWeek
@@ -136,3 +139,4 @@ const result = await ClassifyMeals();
 console.log(result);
 
 process.exit();
+
