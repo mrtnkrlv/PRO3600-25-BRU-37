@@ -41,10 +41,10 @@ async function insertTestMeals() {
     process.exit(); // termine le script une fois terminé
   }
   
-await insertTestMeals();
+//await insertTestMeals();
 
 // const result = await addMeal(1, "Couscous", 5);
 
-console.log(result)
-process.exit()
+//console.log(result)
+//process.exit()
 

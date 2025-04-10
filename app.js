@@ -4,6 +4,7 @@ import { getMeal, addMeal } from "./Server/meals.js"; // Relative path
 
 const app = express()
 
+/*
 app.get("/", async (req,res) => {
     res.send("Front page")
 })
@@ -11,7 +12,15 @@ app.get("/", async (req,res) => {
 app.get("/meal", async (req,res) => {
     const meal = await getMeal(1)
     res.send(meal)
+})*/
+
+
+app.get('/', (req,res) => {
+    res.render("index.ejs")
 })
+
+
+app.use(express.static("public"))
 
 app.use((err, req, res, next) => {
     console.error(err.stack)
