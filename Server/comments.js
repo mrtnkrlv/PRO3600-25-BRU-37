@@ -50,12 +50,10 @@ async function updateComment(commentId, newContent) {
 // Exemple
 
 
-const createNewComment1 = await createComment(1, "paul.emptoz@telecom-sudparis.eu", "Le couscous était super !")
+const createNewComment1 = await createComment(1, "paul.emptoz@telecom-sudparis.eu", null,"Le couscous était super !")
 console.log(createNewComment1)
 
 
 const deleteComment1 = await deleteComment(9)  /* The comment ID is needed to delete it, 
 but it's not that easy for the user to find..." */
 console.log(deleteComment1)
-
-process.exit()
