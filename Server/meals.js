@@ -1,7 +1,7 @@
 import pool from './database.js'; // Import the pool 
 
 // Get the tuple associated to mealId from the MEALS table
-async function getMeal(mealId) {
+export async function getMeal(mealId){
   try {
     const [result] = await pool.query(`
       SELECT *
@@ -18,7 +18,7 @@ async function getMeal(mealId) {
 }
 
 // Insert an element into the MEALS table
-async function addMeal(mealId, mealName, positionInWeek) {
+export async function addMeal(mealId, mealName, positionInWeek) {
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
@@ -134,7 +134,7 @@ async function updateMealPosition(mealId, newPosition) {
 
 // Tests
 
-
+/*
 async function insertTestMeals() {
     const testMeals = [
       { mealId: 4, mealName: 'Poulet rôti', positionInWeek: 1 },
@@ -159,5 +159,7 @@ await insertTestMeals();
 
 // const result = await addMeal(1, "Couscous", 5);
 
-console.log(result)
-process.exit()
+//console.log(result)
+//process.exit()
+
+*/

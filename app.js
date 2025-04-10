@@ -24,7 +24,6 @@ app.get('/plats', (req,res) => {
 })
 
 
-
 // ——————————————————————————————————————————————————— // 
 
 app.use(express.static("public"))
