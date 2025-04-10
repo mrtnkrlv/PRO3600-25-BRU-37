@@ -85,7 +85,10 @@ async function removeRating(mealId, userId) {
 
 // Récupère la note d'un utilisateur pour un plat spécifique
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
 async function getUserRating(mealId, userId) {
@@ -100,7 +103,11 @@ async function getUserRating(mealId, userId) {
 
 // Calcule la moyenne des notes pour un plat spécifique
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 
+=======
+ 
+>>>>>>> Stashed changes
 =======
  
 >>>>>>> Stashed changes
