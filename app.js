@@ -15,10 +15,17 @@ app.get("/meal", async (req,res) => {
 })*/
 
 
-app.get('/', (req,res) => {
-    res.render("index.ejs")
+app.get('/homepage', (req,res) => {
+    res.render("homepage.ejs")
 })
 
+app.get('/plats', (req,res) => {
+    res.render("plats.ejs") 
+})
+
+
+
+// ——————————————————————————————————————————————————— // 
 
 app.use(express.static("public"))
 

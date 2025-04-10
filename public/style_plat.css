@@ -1,0 +1,22 @@
+/* Style des listes */
+
+.list-inside {
+    list-style: none;
+    margin-bottom: 30px;
+}
+
+#list-outside {
+    list-style: none;
+}
+
+.meal-titles {
+    font-weight: bold;
+}
+
+/* Style des images */
+
+.food-image img {
+    width: 50%;
+    border: solid black;
+    border-radius: 5px;
+}
