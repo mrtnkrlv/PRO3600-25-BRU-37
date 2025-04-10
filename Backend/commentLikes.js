@@ -4,7 +4,7 @@ async function createLike(userId, mealId, commentId) {
     // Vérifier que l'utilisateur, le plat et le commentaire existent
     const [userExists] = await pool.query('SELECT id FROM user WHERE id = ?', [userId]);
     const [mealExists] = await pool.query('SELECT mealId FROM meals WHERE mealId = ?', [mealId]);
-    const [commentaryExists] = await pool.query('SELECT commentaryId FROM commentary WHERE commentaryId = ?', [commentId]);
+    const [commentExists] = await pool.query('SELECT commentId FROM comments WHERE commentId = ?', [commentId]);
 
     if (userExists.length === 0) {
         console.log("Utilisateur introuvable");
@@ -16,25 +16,25 @@ async function createLike(userId, mealId, commentId) {
         return null;
     }
 
-    if (commentaryExists.length === 0) {
+    if (commentExists.length === 0) {
         console.log("Commentaire introuvable");
         return null;
     }
 
     // Ajouter le like dans la table commentaryLikes
     const [result] = await pool.query(
-        'INSERT INTO commentaryLikes (userId, mealId, commentaryId) VALUES (?, ?, ?)',
+        'INSERT INTO commentLikes (userId, mealId, commentId) VALUES (?, ?, ?)',
         [userId, mealId, commentId]
     );
 
-    console.log("Like ajouté à la table commentaryLikes");
+    console.log("Like ajouté à la table commentLikes");
     return result;
 }
 
 async function addLikeToComment(commentId, userId, mealId) {
     // Vérifier si le like existe déjà
     const [existingLike] = await pool.query(
-        'SELECT * FROM commentaryLikes WHERE commentaryId = ? AND userId = ?',
+        'SELECT * FROM commentLikes WHERE commentId = ? AND userId = ?',
         [commentId, userId]
     );
 
@@ -45,7 +45,7 @@ async function addLikeToComment(commentId, userId, mealId) {
 
     // Vérifier l'existence du commentaire
     const [comment] = await pool.query(
-        'SELECT * FROM commentary WHERE commentaryId = ?',
+        'SELECT * FROM comments WHERE commentId = ?',
         [commentId]
     );
 
@@ -55,7 +55,7 @@ async function addLikeToComment(commentId, userId, mealId) {
     }
 
     // Mettre à jour le compteur de likes ET ajouter le like
-    await pool.query('UPDATE commentary SET likes = likes + 1 WHERE commentaryId = ?', [commentId]);
+    await pool.query('UPDATE comments SET likes = likes + 1 WHERE commentId = ?', [commentId]);
     console.log("Compteur de likes mis à jour");
 
     const newLike = await createLike(userId, mealId, commentId);
