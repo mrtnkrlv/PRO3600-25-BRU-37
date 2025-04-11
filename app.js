@@ -1,6 +1,6 @@
 import express from 'express'
 
-import { getMeal, addMeal } from "./Server/meals.js"; // Relative path
+import { getMeals, getMeal, addMeal } from "./Server/meals.js"; // Relative path
 
 const app = express()
 
@@ -19,9 +19,15 @@ app.get('/homepage', (req,res) => {
     res.render("homepage.ejs")
 })
 
-app.get('/plats', (req,res) => {
-    res.render("plats.ejs") 
+app.get('/plats', async (req,res) => {
+    const meals = await getMeals()
+    //console.log(meals)
+    res.render("plats.ejs", {
+        meals
+    })
 })
+
+
 
 
 // ——————————————————————————————————————————————————— // 

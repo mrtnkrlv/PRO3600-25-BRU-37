@@ -1,5 +1,20 @@
 import pool from './database.js'; // Import the pool 
 
+// Get an array with all meals in a given week
+export async function getMeals(){
+    try {
+        const result = await pool.query(`
+          SELECT *
+          FROM meals
+          ORDER BY positionInWeek
+            `);
+        return result;
+    }
+    catch (error) {
+        console.error(`Erreur dans la récupération des plats`, error);
+    }
+}
+
 // Get the tuple associated to mealId from the MEALS table
 export async function getMeal(mealId){
   try {

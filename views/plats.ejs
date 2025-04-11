@@ -14,7 +14,12 @@
                 <li class="food-image"> <img src="plat_default.jpg"> </li>
                 <li class="food-description"> ➡️ Description : 
                     <ul>
-                      
+                      <% meals[0].forEach(meal => { %>
+                        <li> 
+                            <%= meal.mealName %>
+                            <%= meal.averageRating %>
+                        </li>
+                      <% }) %>
 
                     </ul>
                 </li>
