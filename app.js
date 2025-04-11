@@ -4,6 +4,7 @@ import { getMeals, getMeal, addMeal } from "./Server/meals.js"; // Relative path
 
 const app = express()
 
+// DO NOT TOUCH! EXAMPLE FUNCTIONS
 /*
 app.get("/", async (req,res) => {
     res.send("Front page")
@@ -13,7 +14,6 @@ app.get("/meal", async (req,res) => {
     const meal = await getMeal(1)
     res.send(meal)
 })*/
-
 
 app.get('/homepage', (req,res) => {
     res.render("homepage.ejs")
