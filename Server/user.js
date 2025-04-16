@@ -1,7 +1,18 @@
 import pool from './database.js';
 
+export async function existsUser(id, pwd, username){
+    const [result] = await pool.query(`
+        SELECT *
+        FROM user
+        WHERE id = ?
+        AND pwd = ?
+        AND username = ?
+        `, [id, pwd, username])
+    if (result) return true;
+    return false;
+}
 
-async function getUser(id){
+export async function getUser(id){
     const [result] = await pool.query(`
         SELECT *
         FROM user
@@ -10,15 +21,15 @@ async function getUser(id){
     return result 
 }
 
-async function createUser(id, password, username){
+export async function createUser(id, pwd, username){
     const [result] = await pool.query(`   
-        INSERT INTO user (id, password, username)
+        INSERT INTO user (id, pwd, username)
         VALUES (?, ?, ?)
-    `, [id, password, username])
+    `, [id, pwd, username])
     return getUser(id)
 }
 
-async function deleteUser(id){
+export async function deleteUser(id){
     const [result] = await pool.query(`   
         DELETE FROM user
         WHERE id = ?
@@ -26,7 +37,7 @@ async function deleteUser(id){
     return result 
 }
 
-async function modifyUsername(id, username){
+export async function modifyUsername(id, username){
     const [result] = await pool.query(`
         UPDATE user
         SET username = ?
@@ -35,14 +46,17 @@ async function modifyUsername(id, username){
     return result 
 }
 
-async function modifyPassword(id, currentpassword, newpassword){
+export async function modifyPassword(id, currentpwd, newpwd){
     const [result] = await pool.query(`
         UPDATE user
-        SET password = ?
-        WHERE id = ? AND password = ?;
-        `,[newpassword, id, currentpassword])
+        SET pwd = ?
+        WHERE id = ? AND pwd = ?;
+        `,[newpwd, id, currentpwd])
     return result 
 }
+
+// Exemples de requêtes
+/*
 
 const createPaul = await createUser("paul.emptoz@telecom-sudparis.eu", "modepassestylé", "Paulo")
 console.log(createPaul)
@@ -59,6 +73,6 @@ console.log(getPaul2)
 //const deletePaul = await deleteUser("paul.emptoz@telecom-sudparis.eu")
 //console.log("L'utilisateur a été supprimé")
 
-
-
 process.exit() 
+
+*/

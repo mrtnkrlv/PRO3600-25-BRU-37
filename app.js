@@ -1,6 +1,18 @@
 import express from 'express'
 
+
+// Meals functions
 import { getMeals, getMeal, addMeal } from "./Server/meals.js"; // Relative path
+
+
+// User functions
+import { existsUser,
+         getUser,
+         createUser,
+         deleteUser,
+         modifyUsername,
+         modifyPassword
+} from "./Server/user.js"; 
 
 const app = express()
 
@@ -27,7 +39,16 @@ app.get('/plats', async (req,res) => {
     })
 })
 
+app.get('/account', async (req,res) => {
+    res.render("account.ejs");
+})
 
+app.get('/account/login', async (req,res) => {
+    //const accountExists = await existsUser(req.body);
+    res.render("account/login.ejs",/*{
+        accountExists
+    }*/);
+}) 
 
 
 // ——————————————————————————————————————————————————— // 
