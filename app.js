@@ -2,7 +2,9 @@ import express from 'express'
 
 
 // Meals functions
-import { getMeals, getMeal, addMeal } from "./Server/meals.js"; // Relative path
+import { getMeals, 
+         getMeal, 
+         addMeal } from "./Server/meals.js"; // Relative path
 
 
 // User functions
@@ -11,8 +13,7 @@ import { existsUser,
          createUser,
          deleteUser,
          modifyUsername,
-         modifyPassword
-} from "./Server/user.js"; 
+         modifyPassword } from "./Server/user.js"; 
 
 const app = express()
 
@@ -53,6 +54,7 @@ app.get('/account/login', async (req,res) => {
 
 // ——————————————————————————————————————————————————— // 
 
+
 app.use(express.static("public"))
 
 app.use((err, req, res, next) => {
@@ -63,3 +65,12 @@ app.use((err, req, res, next) => {
 app.listen(8080, () => {
     console.log("Server is running on port 8080")
 })
+
+
+// ——————————————————————————————————————————————————— // 
+
+
+// Allowing user to login with TSP email address:
+// >> Add all TSP email addresses in the corresponding DB
+// >> Verify if an account has already been created (boolean attribute?)
+// >> Then log them in/send an error message accordingly
