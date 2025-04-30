@@ -1,5 +1,11 @@
 import express from 'express'
+const app = express()
 
+// Middleware for handling form submissions 
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+
+// ———————————————————————————————————————————————————————————— // 
 
 // Meals functions
 import { getMeals, 
@@ -15,7 +21,6 @@ import { existsUser,
          modifyUsername,
          modifyPassword } from "./Server/user.js"; 
 
-const app = express()
 
 // DO NOT TOUCH! EXAMPLE FUNCTIONS
 /*
@@ -44,15 +49,19 @@ app.get('/account', async (req,res) => {
     res.render("account.ejs");
 })
 
+
+// Need to set up GET and POST routes!!
+// >>
+
 app.get('/account/login', async (req,res) => {
-    //const accountExists = await existsUser(req.body);
+    //const accountExists = await existsUser(req.params.)
     res.render("account/login.ejs",/*{
         accountExists
     }*/);
 }) 
 
 
-// ——————————————————————————————————————————————————— // 
+// ———————————————————————————————————————————————————————————— // 
 
 
 app.use(express.static("public"))
@@ -67,7 +76,7 @@ app.listen(8080, () => {
 })
 
 
-// ——————————————————————————————————————————————————— // 
+// ———————————————————————————————————————————————————————————— // 
 
 
 // Allowing user to login with TSP email address:

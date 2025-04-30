@@ -12,6 +12,17 @@
         <br>
         Renseignez votre adresse mail Télécom SudParis.
 
+
+
+        <form action="/account/login" method="POST">
+            <input type="email" name="email" required placeholder="Adress mail TSP"> <!-- The 'email' field is the same as the user table's 'id' field -->
+            <input type="password" name="pwd" required placeholder="Mot de passe"> <!-- Match your DB's 'pwd' column -->
+            <br>
+            <button>Envoyer</button>
+          </form>
+
+
+        <!--
         <div> 
             <input type="text" placeholder="Adresse mail TSP">
             <br>
@@ -19,6 +30,7 @@
             <br>
             <a href="account/login"> <button> Envoyer </button> </a> 
         </div>
+        -->
     </div>
     
 
