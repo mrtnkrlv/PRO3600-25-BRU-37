@@ -10,9 +10,9 @@
     <ul id="list-outside">
         <li>
             <ul class="list-inside"> 
-                <li class="meal-titles"> ➡️ Plats principaux </li>
+                <li class="meal-titles"> ➡️ Plats </li>
                 <li class="food-image"> <img src="plat_default.jpg"> </li>
-                <li class="food-description"> ➡️ Description : 
+                <li class="food-description"> ➡️ Description : les plats de la semaine
                     <ul>
                       <% meals[0].forEach(meal => { %>
                         <li> 
@@ -25,25 +25,26 @@
             </ul>
         </li>
 
+        <!-- See later for adding desserts and entrées -->
+
         <li>
-            <ul class="list-inside">
-                <li class="meal-titles"> ➡️ Entrées </li>
-                <li class="food-image"> <img src="entree_default.jpg"> </li>
-                <li class="food-description"> ➡️ Description : doit être remplie !
-                    <ul></ul>
-
-                </li>
-            </ul>
-        </li>
-
-        <li> 
-            <ul class="list-inside">
-                <li class="meal-titles"> ➡️ Entrées </li>
-                <li class="food-image"> <img src="dessert_default.jpg"> </li>
-                <li class="food-description"> ➡️ Description : doit être remplie !
-                    <ul></ul>
-                </li>
-            </ul>
+            <section id="app">
+                <div class="container">
+                  <div class="row">
+                    <div class="col-6">
+                      <div class="comment">
+                    <p v-for="items in item" v-text="items"></p>
+                          </div>
+                        </div>
+                      </div>
+                  <div class="row">
+                    <div class="col-6">
+                  <textarea type="text" class="input" placeholder="Écrire un commentaire" v-model="newItem" @keyup.enter="addItem()"></textarea>
+                      <button v-on:click="addItem()" class='primaryContained float-right' type="submit">Add Comment</button>
+                    </div>
+                  </div>
+                </div>
+              </section>
         </li>
     </ul>
     
