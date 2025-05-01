@@ -23,6 +23,7 @@ const checkAuth = (req, res, next) => {
   next();
 };
 
+
 // Makes user data available to all templates
 app.use((req, res, next) => {
     res.locals.user = req.session.user;
