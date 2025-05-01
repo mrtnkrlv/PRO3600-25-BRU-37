@@ -1,14 +1,14 @@
 import pool from './database.js';
 
-export async function existsUser(id, pwd, username){
-    const [result] = await pool.query(`
-        SELECT *
+export async function existsUser(id, pwd){
+    const [[result]] = await pool.query(`
+        SELECT COUNT(*) AS count
         FROM user
         WHERE id = ?
         AND pwd = ?
-        AND username = ?
-        `, [id, pwd, username])
-    if (result) return true;
+        `, [id, pwd])
+    //console.log(result.count)
+    if (result.count === 1) return true;
     return false;
 }
 
@@ -76,3 +76,6 @@ console.log(getPaul2)
 process.exit() 
 
 */
+
+//console.log(await existsUser("martin.kirilov-lilov@telecom-sudpars.eu", "1234"))
+

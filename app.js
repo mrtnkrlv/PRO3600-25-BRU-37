@@ -129,10 +129,18 @@ app.get('/login', (req, res) => {
 
 
 app.post('/login', async (req, res) => {
-    const { email, pwd } = req.body;
+    const {email, pwd} = req.body;
+
+    /*
+    const id = req.body.email; // Access form data with req.body
+    const password = req.body.password;
+    */
+    
+    // Check if user exists
+    const accountExists = await existsUser(email,pwd);
     
     // Basic check (replace with your actual user lookup)
-    if (email === "test@example.com" && pwd === "1234") { // <-- TEMPORARY, REPLACE
+    if (accountExists) { // <-- TEMPORARY, REPLACE
       req.session.user = { email }; // Store minimal user data
       return res.redirect('/homepage');
     }
