@@ -12,7 +12,6 @@ import { getMeals,
          getMeal, 
          addMeal } from "./Server/meals.js"; // Relative path
 
-
 // User functions
 import { existsUser,
          getUser,
@@ -45,20 +44,36 @@ app.get('/plats', async (req,res) => {
     })
 })
 
-app.get('/account', async (req,res) => {
-    res.render("account.ejs");
+app.get('/account', (req,res) => {
+    res.render("account.ejs")
 })
 
+// GET route to display the login form
+app.get('/login', (req, res) => {
+  res.render("login.ejs", {
+    accountExists: null // Initially no check has been done
+  });
+});
 
-// Need to set up GET and POST routes!!
-// >>
-
-app.get('/account/login', async (req,res) => {
-    //const accountExists = await existsUser(req.params.)
-    res.render("account/login.ejs",/*{
-        accountExists
-    }*/);
-}) 
+// POST route to handle the form submission
+app.post('/login', async (req, res) => {
+  const email = req.body.email; // Access form data with req.body
+  const password = req.body.password;
+  
+  // Now check if user exists
+  const accountExists = await existsUser(email);
+  
+  if (accountExists){
+    // Verify password and redirect to dashboard or another page
+    res.redirect('/homepage'); // Redirect to homepage
+  } 
+  else{
+    // Render login page with message or redirect to signup
+    res.render("login.ejs", {
+      accountExists: false
+    });
+  }
+});
 
 
 // ———————————————————————————————————————————————————————————— // 
@@ -77,9 +92,3 @@ app.listen(8080, () => {
 
 
 // ———————————————————————————————————————————————————————————— // 
-
-
-// Allowing user to login with TSP email address:
-// >> Add all TSP email addresses in the corresponding DB
-// >> Verify if an account has already been created (boolean attribute?)
-// >> Then log them in/send an error message accordingly
