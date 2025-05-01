@@ -12,14 +12,24 @@ export async function existsUser(id, pwd){
     return false;
 }
 
+/*
 export async function getUser(id){
     const [result] = await pool.query(`
-        SELECT *
+        SELECT id 
         FROM user
         WHERE id = ?
     `, [id])
-    return result 
+    return result[0]
 }
+*/
+
+export const getUser = async (id) => {
+    const [user] = await pool.query(
+      'SELECT id, pwd, username FROM user WHERE id = ?', 
+      [id]
+    );
+    return user[0]; // Returns { id, pwd, username }
+  };
 
 export async function createUser(id, pwd, username){
     const [result] = await pool.query(`   

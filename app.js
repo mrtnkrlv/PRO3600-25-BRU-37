@@ -15,12 +15,11 @@ app.use(express.json());
 
 import session from 'express-session';
 
-// Add AFTER express() declaration, BEFORE routes
 app.use(session({
-  secret: 'your-secret-key', // Replace with any random string
+  secret: 'random_string12345', // Need to replace this with a random string
   resave: false,
   saveUninitialized: false,
-  cookie: { secure: false } // Set true if using HTTPS
+  cookie: { secure: false } // Set at false right now because using HTTP rather than HTTPS
 }));
 
 // Middleware to check login status
@@ -33,7 +32,7 @@ const checkAuth = (req, res, next) => {
 // >>>
 
 
-// Make user data available to all templates
+// Makes user data available to all templates
 app.use((req, res, next) => {
     res.locals.user = req.session.user;
     next();
@@ -57,17 +56,7 @@ import { existsUser,
          modifyUsername,
          modifyPassword } from "./Server/user.js"; 
 
-
-// DO NOT TOUCH! EXAMPLE FUNCTIONS
-/*
-app.get("/", async (req,res) => {
-    res.send("Front page")
-})
-
-app.get("/meal", async (req,res) => {
-    const meal = await getMeal(1)
-    res.send(meal)
-})*/
+// ———————————————————————————————————————————————————————————— // 
 
 app.get('/homepage', (req,res) => {
     res.render("homepage.ejs")
@@ -89,8 +78,9 @@ app.get('/plats', async (req,res) => {
 // >>>
 
 
-app.get('/account', checkAuth, (req, res) => {
-    res.render('account', { user: req.session.user });
+  app.get('/account', checkAuth, async (req, res) => {
+    const user = await getUser(req.session.user.id); // Fetch latest data
+    res.render('account', { user }); // Pass user object
   });
 
 
@@ -128,25 +118,24 @@ app.get('/login', (req, res) => {
 // >>>
 
 
-app.post('/login', async (req, res) => {
-    const {email, pwd} = req.body;
-
-    /*
-    const id = req.body.email; // Access form data with req.body
-    const password = req.body.password;
-    */
+  app.post('/login', async (req, res) => {
+    const { email, pwd } = req.body; // Use "email" to match form input name
+  
+    // Fetch user by email (stored in id column)
+    const user = await getUser(email);
     
-    // Check if user exists
-    const accountExists = await existsUser(email,pwd);
-    
-    // Basic check (replace with your actual user lookup)
-    if (accountExists) { // <-- TEMPORARY, REPLACE
-      req.session.user = { email }; // Store minimal user data
-      return res.redirect('/homepage');
+    // TEMPORARY INSECURE CHECK - REPLACE WITH BCRYPT
+    if (user && pwd === user.pwd) { // Compare plaintext passwords (remove later)
+      req.session.user = { 
+        id: user.id, // Store email (from id column)
+        username: user.username 
+      };
+      return res.redirect('/homepage'); // Go to account page, not homepage
     }
-    
+  
     res.render('login', { error: 'Invalid credentials' });
   });
+
 
 
 // >>>
