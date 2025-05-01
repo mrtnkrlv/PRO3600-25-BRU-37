@@ -20,7 +20,18 @@
 
             -->
 
-            <li id="account-button"> <a href="/account"> <button> Compte </button> </a> </li>
+            <li id="account-button"> 
+                <!-- <a href="/account"> <button> Compte </button> </a> --> 
+
+
+                <% if (user) { %>
+                    <a href="/account">Account</a> | <a href="/logout">Logout</a>
+                  <% } else { %>
+                    <a href="/login">Login</a>
+                  <% } %>
+
+                  
+            </li>
         </ul>    
     </div>
 

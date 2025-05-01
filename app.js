@@ -1,9 +1,46 @@
 import express from 'express'
 const app = express()
 
+app.set('view engine', 'ejs');  // Set EJS as template engine
+app.set('views', './views');    // Specify views directory (if not default)
+
 // Middleware for handling form submissions 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+
+
+
+// >>>
+
+
+import session from 'express-session';
+
+// Add AFTER express() declaration, BEFORE routes
+app.use(session({
+  secret: 'your-secret-key', // Replace with any random string
+  resave: false,
+  saveUninitialized: false,
+  cookie: { secure: false } // Set true if using HTTPS
+}));
+
+// Middleware to check login status
+const checkAuth = (req, res, next) => {
+  if (!req.session.user) return res.redirect('/login');
+  next();
+};
+
+
+// >>>
+
+
+// Make user data available to all templates
+app.use((req, res, next) => {
+    res.locals.user = req.session.user;
+    next();
+  });
+
+  
+// >>>
 
 // ———————————————————————————————————————————————————————————— // 
 
@@ -44,9 +81,21 @@ app.get('/plats', async (req,res) => {
     })
 })
 
-app.get('/account', (req,res) => {
+/*app.get('/account', (req,res) => {
     res.render("account.ejs")
-})
+})*/
+
+
+// >>>
+
+
+app.get('/account', checkAuth, (req, res) => {
+    res.render('account', { user: req.session.user });
+  });
+
+
+// >>>
+
 
 // GET route to display the login form
 app.get('/login', (req, res) => {
@@ -56,7 +105,7 @@ app.get('/login', (req, res) => {
 });
 
 // POST route to handle the form submission
-app.post('/login', async (req, res) => {
+/*app.post('/login', async (req, res) => {
   const email = req.body.email; // Access form data with req.body
   const password = req.body.password;
   
@@ -73,7 +122,38 @@ app.post('/login', async (req, res) => {
       accountExists: false
     });
   }
-});
+});*/
+
+
+// >>>
+
+
+app.post('/login', async (req, res) => {
+    const { email, pwd } = req.body;
+    
+    // Basic check (replace with your actual user lookup)
+    if (email === "test@example.com" && pwd === "1234") { // <-- TEMPORARY, REPLACE
+      req.session.user = { email }; // Store minimal user data
+      return res.redirect('/homepage');
+    }
+    
+    res.render('login', { error: 'Invalid credentials' });
+  });
+
+
+// >>>
+
+
+// >>>
+
+
+app.get('/logout', (req, res) => {
+    req.session.destroy();
+    res.redirect('/homepage');
+  });
+
+
+// >>>
 
 
 // ———————————————————————————————————————————————————————————— // 
