@@ -1,9 +1,33 @@
 import express from 'express'
 const app = express()
 
+app.set('view engine', 'ejs');  // Set EJS as template engine
+app.set('views', './views');    // Specify views directory (if not default)
+
 // Middleware for handling form submissions 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+
+import session from 'express-session';
+
+app.use(session({
+  secret: 'random_string12345', // Need to replace this with a random string
+  resave: false,
+  saveUninitialized: false,
+  cookie: { secure: false } // Set at false right now because using HTTP rather than HTTPS
+}));
+
+// Middleware to check login status
+const checkAuth = (req, res, next) => {
+  if (!req.session.user) return res.redirect('/login');
+  next();
+};
+
+// Makes user data available to all templates
+app.use((req, res, next) => {
+    res.locals.user = req.session.user;
+    next();
+  });
 
 // ———————————————————————————————————————————————————————————— // 
 
@@ -11,7 +35,6 @@ app.use(express.json());
 import { getMeals, 
          getMeal, 
          addMeal } from "./Server/meals.js"; // Relative path
-
 
 // User functions
 import { existsUser,
@@ -21,17 +44,7 @@ import { existsUser,
          modifyUsername,
          modifyPassword } from "./Server/user.js"; 
 
-
-// DO NOT TOUCH! EXAMPLE FUNCTIONS
-/*
-app.get("/", async (req,res) => {
-    res.send("Front page")
-})
-
-app.get("/meal", async (req,res) => {
-    const meal = await getMeal(1)
-    res.send(meal)
-})*/
+// ———————————————————————————————————————————————————————————— // 
 
 app.get('/homepage', (req,res) => {
     res.render("homepage.ejs")
@@ -45,20 +58,48 @@ app.get('/plats', async (req,res) => {
     })
 })
 
-app.get('/account', async (req,res) => {
-    res.render("account.ejs");
-})
+app.get('/account', checkAuth, async (req, res) => {
+    const user = await getUser(req.session.user.id); // Fetch latest data
+    res.render('account', { user }); // Pass user object
+});
+
+// GET route to display the login form
+app.get('/login', (req, res) => {
+  res.render("login.ejs", {
+    accountExists: null // Initially no check has been done
+  });
+});
+
+app.post('/login', async (req, res) => {
+    const { email, pwd } = req.body; // Use "email" to match form input name
+  
+    // Fetch user by email (stored in id column)
+    const user = await getUser(email);
+    
+    if (user && pwd === user.pwd){ // Compare plaintext passwords 
+        req.session.user = { 
+            id: user.id, // Store email (from id column)
+            username: user.username 
+            };
+      return res.redirect('/homepage'); // Go to account page, not homepage
+    }
+  
+    res.render('login', { error: 'Invalid credentials' });
+});
+
+app.get('/logout', (req, res) => {
+    req.session.destroy();
+    res.redirect('/homepage');
+});
+
+/*
+app.post('/plats', async (req,res) => {
+    const {comment} = req.body
+
+    // ...
 
 
-// Need to set up GET and POST routes!!
-// >>
-
-app.get('/account/login', async (req,res) => {
-    //const accountExists = await existsUser(req.params.)
-    res.render("account/login.ejs",/*{
-        accountExists
-    }*/);
-}) 
+})*/
 
 
 // ———————————————————————————————————————————————————————————— // 
@@ -77,9 +118,3 @@ app.listen(8080, () => {
 
 
 // ———————————————————————————————————————————————————————————— // 
-
-
-// Allowing user to login with TSP email address:
-// >> Add all TSP email addresses in the corresponding DB
-// >> Verify if an account has already been created (boolean attribute?)
-// >> Then log them in/send an error message accordingly

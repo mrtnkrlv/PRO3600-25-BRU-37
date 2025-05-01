@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style_login.css">
+    <title>Facebouf — Account</title>
+</head>
+<body>
+    <div> 
+        <div id="connect-text"> Se connecter </div>
+        <br>
+        Renseignez votre adresse mail de Télécom SudParis.
+
+
+        <form action="/login" method="POST"> <!-- action: specifies server endpoint, method: specifies what kind of request to issue  -->
+            <input type="email" name="email" required placeholder="Adress mail TSP"> <!-- The 'email' field is the same as the user table's 'id' field -->
+            <input type="password" name="pwd" required placeholder="Mot de passe"> <!-- Match the DB's 'pwd' column -->
+            <br>
+            <button>Envoyer</button>
+        </form>
+
+
+    </div>
+    
+
+</body>
+</html>
