@@ -3,11 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style_account.css">
     <title>Facebouf — Compte</title>
 </head>
 <body>
     <div>
-        <ul>
+        <ul id="user-data">
+            
+            <h3> Vous pouvez consulter les données relatives à votre compte ici. </h3>
+
             <li>
                 Votre adresse mail : <%= user.id %>
             </li>
@@ -15,7 +19,7 @@
                 Votre mot de passe : <%= user.pwd %>
             </li>
             <li>
-                Votre nom d'utilisateur : <% user.username %>
+                Votre nom d'utilisateur : <%= user.username %>
             </li>
 
         </ul>

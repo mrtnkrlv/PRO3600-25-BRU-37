@@ -58,10 +58,10 @@ app.get('/plats', async (req,res) => {
     })
 })
 
-  app.get('/account', checkAuth, async (req, res) => {
+app.get('/account', checkAuth, async (req, res) => {
     const user = await getUser(req.session.user.id); // Fetch latest data
     res.render('account', { user }); // Pass user object
-  });
+});
 
 // GET route to display the login form
 app.get('/login', (req, res) => {
