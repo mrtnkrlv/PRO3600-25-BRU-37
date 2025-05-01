@@ -8,11 +8,6 @@ app.set('views', './views');    // Specify views directory (if not default)
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-
-
-// >>>
-
-
 import session from 'express-session';
 
 app.use(session({
@@ -28,18 +23,11 @@ const checkAuth = (req, res, next) => {
   next();
 };
 
-
-// >>>
-
-
 // Makes user data available to all templates
 app.use((req, res, next) => {
     res.locals.user = req.session.user;
     next();
   });
-
-  
-// >>>
 
 // ———————————————————————————————————————————————————————————— // 
 
@@ -70,22 +58,10 @@ app.get('/plats', async (req,res) => {
     })
 })
 
-/*app.get('/account', (req,res) => {
-    res.render("account.ejs")
-})*/
-
-
-// >>>
-
-
   app.get('/account', checkAuth, async (req, res) => {
     const user = await getUser(req.session.user.id); // Fetch latest data
     res.render('account', { user }); // Pass user object
   });
-
-
-// >>>
-
 
 // GET route to display the login form
 app.get('/login', (req, res) => {
@@ -94,63 +70,27 @@ app.get('/login', (req, res) => {
   });
 });
 
-// POST route to handle the form submission
-/*app.post('/login', async (req, res) => {
-  const email = req.body.email; // Access form data with req.body
-  const password = req.body.password;
-  
-  // Now check if user exists
-  const accountExists = await existsUser(email);
-  
-  if (accountExists){
-    // Verify password and redirect to dashboard or another page
-    res.redirect('/homepage'); // Redirect to homepage
-  } 
-  else{
-    // Render login page with message or redirect to signup
-    res.render("login.ejs", {
-      accountExists: false
-    });
-  }
-});*/
-
-
-// >>>
-
-
-  app.post('/login', async (req, res) => {
+app.post('/login', async (req, res) => {
     const { email, pwd } = req.body; // Use "email" to match form input name
   
     // Fetch user by email (stored in id column)
     const user = await getUser(email);
     
-    // TEMPORARY INSECURE CHECK - REPLACE WITH BCRYPT
-    if (user && pwd === user.pwd) { // Compare plaintext passwords (remove later)
-      req.session.user = { 
-        id: user.id, // Store email (from id column)
-        username: user.username 
-      };
+    if (user && pwd === user.pwd){ // Compare plaintext passwords 
+        req.session.user = { 
+            id: user.id, // Store email (from id column)
+            username: user.username 
+            };
       return res.redirect('/homepage'); // Go to account page, not homepage
     }
   
     res.render('login', { error: 'Invalid credentials' });
-  });
-
-
-
-// >>>
-
-
-// >>>
-
+});
 
 app.get('/logout', (req, res) => {
     req.session.destroy();
     res.redirect('/homepage');
   });
-
-
-// >>>
 
 
 // ———————————————————————————————————————————————————————————— // 
