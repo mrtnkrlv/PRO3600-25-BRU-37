@@ -32,6 +32,17 @@ export async function getMeal(mealId){
   }
 }
 
+export async function getMealByName(mealName){
+    const [result] = await pool.query(`
+      SELECT mealId as foodId
+      FROM meals
+      WHERE mealName = ?
+    `, [mealName])
+    
+    return result[0]
+    
+}
+
 // Insert an element into the MEALS table
 export async function addMeal(mealId, mealName, positionInWeek) {
   const connection = await pool.getConnection();
