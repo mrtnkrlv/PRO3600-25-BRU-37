@@ -93,14 +93,20 @@ app.get('/logout', (req, res) => {
     res.redirect('/homepage');
 });
 
-/*
+// Comments functions
+import { getComment,
+  createComment,
+  deleteComment,
+  getCommentsByMeal,
+  getCommentsByUser,
+  updateComment } from "./Server/comments.js"; 
+
+
 app.post('/plats', async (req,res) => {
     const {comment} = req.body
-
-    // ...
-
-
-})*/
+    comment.createComment(mealId, userId, content)
+    res.redirect("/plats")
+})
 
 
 // ———————————————————————————————————————————————————————————— // 

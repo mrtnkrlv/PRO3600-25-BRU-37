@@ -1,6 +1,6 @@
 import pool from './database.js';
 
-async function getComment(commentId) {
+export async function getComment(commentId) {
     try {
         const [result] = await pool.query(`
             SELECT *
@@ -14,7 +14,7 @@ async function getComment(commentId) {
     }
 }
 
-async function createComment(mealId, userId, content, commentParentId){ /* The other attributes should be 
+export async function createComment(mealId, userId, content, commentParentId){ /* The other attributes should be 
     initialized automatically and commentaryParentId is optional */
     const [result] = await pool.query(`   
         INSERT INTO comments (mealId, userId, content, commentParentId)
@@ -24,7 +24,7 @@ async function createComment(mealId, userId, content, commentParentId){ /* The o
     return getComment(commentId)// insertId return the generated ID
 }
 
-async function deleteComment(commentId){
+export async function deleteComment(commentId){
     const [result] = await pool.query(`   
         DELETE FROM comments
         WHERE commentId = ?
@@ -32,13 +32,13 @@ async function deleteComment(commentId){
     return result 
 }
 
-async function getCommentsByMeal(mealId) {
+export async function getCommentsByMeal(mealId) {
     const query = `SELECT * FROM comments WHERE mealId = ?`;
     const [tab] = await pool.query(query, [mealId]);
     return tab;
 }
 
-async function getCommentsByUser(userId) {
+export async function getCommentsByUser(userId) {
     try {
         const [result] = await pool.query(`
             SELECT * FROM comments WHERE commentId = ?
@@ -50,7 +50,7 @@ async function getCommentsByUser(userId) {
     }
 }
   
-async function updateComment(commentId, newContent) {
+export async function updateComment(commentId, newContent) {
     const query = `UPDATE comments SET content = ? WHERE commentsId = ?`;
     await pool.query(query, [newContent, commentId]);
     return { message: 'Comments updated successfuly' };
@@ -59,7 +59,7 @@ async function updateComment(commentId, newContent) {
 
 // Exemple d'utilisation des fonctions
 
-(async () => {
+/* (async () => {
     try {
         // Création d'un nouveau commentaire (sans parent)
         const createNewComment1 = await createComment(1, "paul.emptoz@telecom-sudparis.eu",null, "Le couscous était super !");
@@ -72,3 +72,4 @@ async function updateComment(commentId, newContent) {
         console.error("Une erreur est survenue :", error.message);
     }
 })();
+*/
