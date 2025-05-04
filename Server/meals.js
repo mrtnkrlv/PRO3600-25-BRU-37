@@ -39,8 +39,13 @@ export async function getMealByName(mealName){
       WHERE mealName = ?
     `, [mealName])
     
-    return result[0]
-    
+    const firstRow = result[0]
+
+    if (firstRow) {
+      return firstRow.foodId  // This is the ID value
+    } else {
+      return null  // Or handle no result case as you want
+    }    
 }
 
 // Insert an element into the MEALS table
@@ -189,3 +194,5 @@ await insertTestMeals();
 //process.exit()
 
 */
+
+// console.log(await getMealByName('Couscous'))

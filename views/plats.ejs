@@ -35,14 +35,22 @@
                 <br>
                 <button>Envoyer</button>
             </form>
-
-
-
         </li>
     
-  
-
-    </ul>
-    
+        <li>
+            <ul class="list-inside"> 
+                <li class="comment-titles"> ➡️ Commentaires </li>
+                    <ul>
+                        <% comments.forEach(comment => { %>
+                        <li> 
+                            <%= comment.username %>
+                            <%= comment.content %>
+                        </li>
+                        <% }) %>
+                    </ul>
+                </li>
+            </ul>
+        </li>
+    </ul>  
 </body>
 </html>

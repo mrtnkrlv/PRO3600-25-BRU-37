@@ -1,5 +1,17 @@
 import pool from './database.js';
 
+export async function getComments() {
+    try {
+        const [result] = await pool.query(`
+            SELECT *
+            FROM comments`);
+            return result; 
+    } catch (error) {
+        console.error(`Erreur lors de la récupération des commentaires`);
+        throw error; // Propagation de l'erreur pour gestion en amont`)
+    }
+}
+
 export async function getComment(commentId) {
     try {
         const [result] = await pool.query(`
@@ -19,8 +31,9 @@ export async function createComment(mealId, userId, content, commentParentId){ /
     const [result] = await pool.query(`   
         INSERT INTO comments (mealId, userId, content, commentParentId)
         VALUES (?, ?, ?, ?)
-    `, [mealId, userId, commentParentId, content])
+    `, [mealId, userId, content, commentParentId])
     const commentId = await result.insertId
+    // console.log(result)
     return getComment(commentId)// insertId return the generated ID
 }
 
@@ -73,3 +86,5 @@ export async function updateComment(commentId, newContent) {
     }
 })();
 */
+
+// console.log(await getComments())

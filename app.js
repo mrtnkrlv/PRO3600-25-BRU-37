@@ -1,4 +1,5 @@
 import express from 'express'
+import pool from './Server/database.js';
 const app = express()
 
 app.set('view engine', 'ejs');  // Set EJS as template engine
@@ -23,6 +24,7 @@ const checkAuth = (req, res, next) => {
   next();
 };
 
+
 // Makes user data available to all templates
 app.use((req, res, next) => {
     res.locals.user = req.session.user;
@@ -34,7 +36,8 @@ app.use((req, res, next) => {
 // Meals functions
 import { getMeals, 
          getMeal, 
-         addMeal } from "./Server/meals.js"; // Relative path
+         addMeal, 
+         getMealByName  } from "./Server/meals.js"; // Relative path
 
 // User functions
 import { existsUser,
@@ -42,7 +45,8 @@ import { existsUser,
          createUser,
          deleteUser,
          modifyUsername,
-         modifyPassword } from "./Server/user.js"; 
+         modifyPassword, 
+         getUsernameByComment} from "./Server/user.js"; 
 
 // ———————————————————————————————————————————————————————————— // 
 
@@ -53,8 +57,14 @@ app.get('/homepage', (req,res) => {
 app.get('/plats', async (req,res) => {
     const meals = await getMeals()
     //console.log(meals)
+    //Get comments WITH usernames via SQL JOIN
+    const [comments] = await pool.query(`
+    SELECT comments.*, user.username 
+    FROM comments
+    JOIN user ON comments.userId = user.id;
+    `)
     res.render("plats.ejs", {
-        meals
+        meals, comments
     })
 })
 
@@ -98,13 +108,18 @@ import { getComment,
   deleteComment,
   getCommentsByMeal,
   getCommentsByUser,
-  updateComment } from "./Server/comments.js"; 
+  updateComment,
+  getComments} from "./Server/comments.js"; 
 
 
 app.post('/plats', async (req,res) => {
-    const {comment} = req.body
-    comment.createComment(mealId, userId, content)
+    const {comment, meal} = req.body
+    const userId = req.session.user.id
+    const mealId = await getMealByName(meal)
+    const content = comment
+    await createComment(mealId, userId, content, null)
     res.redirect("/plats")
+    // console.log(newComment)
 })
 
 
