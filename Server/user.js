@@ -11,6 +11,8 @@ export async function existsUser(id, pwd){
     return false
 }
 
+
+
 export const getUser = async (id) => {
     const [user] = await pool.query(
       `SELECT id, pwd, username 
@@ -42,6 +44,17 @@ export async function modifyUsername(id, username){
         WHERE id = ?;
         `,[username, id])
     return result 
+}
+
+import {getComment} from "./comments.js"; 
+
+export async function getUsernameByComment(commentId){
+    const comment = await getComment(commentId);
+    const userId = comment.userId;
+    const [result] = await pool.query(  
+    `SELECT username FROM user WHERE id = ?`, 
+    [userId])
+    return result
 }
 
 export async function modifyPassword(id, currentpwd, newpwd){
@@ -77,3 +90,6 @@ process.exit()
 
 //console.log(await existsUser("martin.kirilov-lilov@telecom-sudpars.eu", "1234"))
 
+// const createMartin = await createUser("martin.kirilov-lilov@telecom-sudparis.eu", "1234", "Martini")
+
+// console.log(await getUsernameByComment(8))
