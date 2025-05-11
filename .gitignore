@@ -2,3 +2,8 @@
 config/
 .DS_Store
 node_modules
+Server/fichier_complet.txt
+views/fichier_complet.txt
+public/fichier_complet.txt
+fichier_complet.txt
+
