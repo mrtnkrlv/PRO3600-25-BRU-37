@@ -45,8 +45,9 @@ import { existsUser,
          modifyPassword } from "./Server/user.js"; 
 
 // ———————————————————————————————————————————————————————————— // 
+import RouteCache from './Server/RouteCache.js'
 
-app.get('/homepage', (req,res) => {
+app.get('/homepage', RouteCache(300), (req,res) => {
     res.render("homepage.ejs")
 })
 
