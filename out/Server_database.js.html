@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Module: database</title>
+    <title>JSDoc: Source: Server/database.js</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,128 +17,37 @@
 
 <div id="main">
 
-    <h1 class="page-title">Module: database</h1>
+    <h1 class="page-title">Source: Server/database.js</h1>
 
     
 
 
 
-
-<section>
-
-<header>
     
-        
-    
-</header>
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import mysql from 'mysql2/promise';
+import dotenv from 'dotenv';
+dotenv.config(); // No path needed
 
-<article>
-    <div class="container-overview">
-    
-        
+/**
+ * @module database
+ */
 
-        
-    
-    </div>
+/**
+ * Pool de connexions MySQL pour accéder à la base de données.
+ * @type {object}
+ */
+const pool = mysql.createPool({
+  host: process.env.MYSQL_HOST,
+  user: process.env.MYSQL_USER,
+  password: process.env.MYSQL_PASSWORD,
+  database: process.env.MYSQL_DATABASE
+});
 
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-        <h3 class="subsection-title">Members</h3>
-
-        
-            
-<h4 class="name" id="~pool"><span class="type-signature">(inner, constant) </span>pool<span class="type-signature"> :object</span></h4>
-
-
-
-
-<div class="description">
-    Pool de connexions MySQL pour accéder à la base de données.
-</div>
-
-
-
-    <h5>Type:</h5>
-    <ul>
-        <li>
-            
-<span class="param-type">object</span>
-
-
-        </li>
-    </ul>
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Server_database.js.html">Server/database.js</a>, <a href="Server_database.js.html#line13">line 13</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-        
-    
-
-    
-
-    
-
-    
-</article>
-
-</section>
+export default pool;</code></pre>
+        </article>
+    </section>
 
 
 
