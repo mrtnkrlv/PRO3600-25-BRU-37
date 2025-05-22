@@ -1,7 +1,9 @@
 import NodeCache from 'node-cache'
 const cache = new NodeCache()
 
-const duration = (duration) => (req, res, next) => {
+// duration est la fonction utilisée pour implémenter le cache
+
+const duration = (duration) => (req, res, next) => { // duration est la durée de stockage de la clé
     if (req.method != 'GET') {
         console.error('Cannot cache non-GET methods')
         return next()

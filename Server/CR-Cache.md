@@ -28,6 +28,8 @@ Le code qui constitue le cache se trouve dans : **Route-Cache.js**
 => Si **NON :** 
     On ajoute la clé au cache et on renvoie la prochaine fonction **next()**
 
+Pour l'instant j'ai seulement implémenté la fonction pour le chargement de la homepage, à voir là où c'est le plus utile.
+
 
 ## Critiques
 Le système de cache peut largement être amélioré, ici c'est une V1.
