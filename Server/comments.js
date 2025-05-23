@@ -1,6 +1,13 @@
 import pool from './database.js';
+import LRUcache from '../LRUcache.js';
+
+const commentCache = new LRUCache(1000)
 
 async function getComment(commentId) {
+    const cachedComment = commentCache.get(commentId)
+    if (cachedComment) {
+         return cachedComment
+    }
     try {
         const [result] = await pool.query(`
             SELECT *
@@ -29,6 +36,7 @@ async function deleteComment(commentId){
         DELETE FROM comments
         WHERE commentId = ?
         ` ,[commentId])
+    commentCache.map.delete(commentID)   //On supprime le commentaire du cache
     return result 
 }
 
