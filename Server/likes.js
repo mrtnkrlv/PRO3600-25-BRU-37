@@ -126,7 +126,9 @@ const userExistsCache = new LRUCache(1000);
 //vérifier/mettre en cache l'existence d'un plat 
 async function mealExists(mealId) {
   const hit = mealExistsCache.get(mealId);
-  if (hit !== undefined) return hit;
+  if (hit !== undefined) { 
+    return hit;
+  }
 
   const [rows] = await pool.query(`SELECT 1 FROM meals WHERE mealId = ?`, [mealId]);
   const exists = rows.length > 0;
@@ -137,7 +139,9 @@ async function mealExists(mealId) {
 //vérifier/mettre en cache l'existence d'un user
 async function userExists(userId) {
   const hit = userExistsCache.get(userId);
-  if (hit !== undefined) return hit;
+  if (hit !== undefined) { 
+    return hit;
+  }
 
   const [rows] = await pool.query(`SELECT 1 FROM user WHERE id = ?`, [userId]);
   const exists = rows.length > 0;
@@ -148,7 +152,9 @@ async function userExists(userId) {
 //récupérer la liste des likes d’un user (avec cache)
 async function getUserLikes(userId) {
   let likes = userLikesCache.get(userId);
-  if (likes) return likes;                        
+  if (likes) {
+    return likes;
+  }                        
 
   const [rows] = await pool.query(
     `SELECT mealId FROM likes WHERE userId = ?`,
