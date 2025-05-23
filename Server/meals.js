@@ -9,7 +9,7 @@ import pool from './database.js'; // Import the pool
  * @async
  * @returns {Promise<Array>} Tableau d'objets représentant les plats.
  */
-export async function getMeals(){
+async function getMeals(){
     try {
         const result = await pool.query(`
           SELECT *
@@ -29,7 +29,7 @@ export async function getMeals(){
  * @param {number} mealId - Identifiant du plat.
  * @returns {Promise<Object|null>} Objet plat ou null si non trouvé.
  */
-export async function getMeal(mealId){
+async function getMeal(mealId){
   try {
     const [result] = await pool.query(`
       SELECT *
@@ -51,7 +51,7 @@ export async function getMeal(mealId){
  * @param {string} mealName - Nom du plat.
  * @returns {Promise<number|null>} Identifiant du plat ou null si non trouvé.
  */
-export async function getMealByName(mealName){
+async function getMealByName(mealName){
     const [result] = await pool.query(`
       SELECT mealId as foodId
       FROM meals
@@ -76,7 +76,7 @@ export async function getMealByName(mealName){
  * @returns {Promise<Object>} Plat ajouté.
  * @throws {Error} Si la position ou l'ID est invalide.
  */
-export async function addMeal(mealId, mealName, positionInWeek) {
+async function addMeal(mealId, mealName, positionInWeek) {
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
@@ -120,7 +120,7 @@ async function deleteMeal(mealId) {
     await connection.beginTransaction();
     
     // Suppression des dépendances
-    await connection.query('DELETE FROM mealGrades WHERE mealId = ?', [mealId]);
+    await connection.query('DELETE FROM ratings WHERE mealId = ?', [mealId]);
     await connection.query('DELETE FROM comments WHERE mealId = ?', [mealId]);
     
     // Suppression du plat
@@ -199,6 +199,8 @@ async function updateMealPosition(mealId, newPosition) {
     connection.release();
   }
 }
+
+export { getMeals, getMeal, getMealByName, addMeal, deleteMeal, getScheduledMeals, updateMealPosition };
 
 
 // Tests

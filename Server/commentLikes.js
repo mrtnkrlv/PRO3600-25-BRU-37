@@ -161,7 +161,8 @@ async function removeLikeFromComment(commentId, userId) {
   }
 }
   
-  
+export { createLike, addLikeToComment, removeLikeFromComment };
+
 
 // Fonction principale pour tester
 /* (async () => {

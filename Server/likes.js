@@ -59,6 +59,7 @@ async function addLikeToMeal(mealId, userId) {
     return { success: true, message: "Like ajouté avec succès" };
 }
 
+
 /**
  * Retire un like d'un plat pour un utilisateur.
  * @async
@@ -105,8 +106,9 @@ async function removeLikeFromMeal(mealId, userId) {
     return { success: true, message: "Like retiré avec succès" };
 }
 
+export { addLikeToMeal, removeLikeFromMeal };
 
-/*  Exemple d'utilisation
+/*
 async function main() {
     const result = await addLikeToMeal(1, "paul.emptoz@telecom-sudparis.eu");
     
