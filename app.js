@@ -45,13 +45,14 @@ import { existsUser,
          modifyPassword } from "./Server/user.js"; 
 
 // ———————————————————————————————————————————————————————————— // 
-import RouteCache from './Server/RouteCache.js'
+
+import RouteCache from './Server/RouteCache.js'   //On importe le ficher associé au cache pour le contenu statique
 
 app.get('/homepage', RouteCache(300), (req,res) => {
     res.render("homepage.ejs")
 })
 
-app.get('/plats', async (req,res) => {
+app.get('/plats', RouteCache(300), async (req,res) => {
     const meals = await getMeals()
     //console.log(meals)
     res.render("plats.ejs", {
@@ -65,7 +66,7 @@ app.get('/account', checkAuth, async (req, res) => {
 });
 
 // GET route to display the login form
-app.get('/login', (req, res) => {
+app.get('/login', RouteCache(300), (req, res) => {
   res.render("login.ejs", {
     accountExists: null // Initially no check has been done
   });
