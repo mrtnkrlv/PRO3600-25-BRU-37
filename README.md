@@ -134,7 +134,6 @@ npx jsdoc .
 - Lucas Charbonnier (documentation)
 - Paul Emptoz (GitHub, secrétariat)
 
-## Licence
 
 Projet réalisé dans le cadre du module PRO3600 à Télécom SudParis.
 
