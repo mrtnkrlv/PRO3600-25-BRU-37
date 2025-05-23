@@ -1,7 +1,14 @@
 import pool from './database.js';
 import { getUser, createUser, deleteUser, modifyUsername, modifyPassword } from './user.js';
 
-// Mock de la connexion à la base de données
+/**
+ * @module testUser
+ */
+
+/**
+ * Tests unitaires pour le module User avec Jest.
+ * @module testUser
+ */
 jest.mock('./database.js', () => ({
   query: jest.fn()
 }));

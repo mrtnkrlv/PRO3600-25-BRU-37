@@ -1,6 +1,18 @@
 import pool from './database.js';
 
-// Ajoute ou met à jour la note d'un utilisateur pour un plat
+/**
+ * @module ratings
+ */
+
+/**
+ * Ajoute ou met à jour la note d'un utilisateur pour un plat donné.
+ * @async
+ * @param {number} mealId - Identifiant du plat.
+ * @param {string} userId - Identifiant de l'utilisateur.
+ * @param {number} rating - Note à donner (entier entre 1 et 5).
+ * @returns {Promise<Object>} Résultat de l'opération avec un message de succès ou d'erreur.
+ * @throws {Error} Si la note, le plat ou l'utilisateur n'est pas valide.
+ */
 async function addOrUpdateRating(mealId, userId, rating) {
   try {
     // Validation de la note
@@ -48,8 +60,14 @@ async function addOrUpdateRating(mealId, userId, rating) {
   }
 }
 
-// Supprime la note d'un utilisateur pour un plat spécifique
-
+/**
+ * Supprime la note d'un utilisateur pour un plat spécifique.
+ * @async
+ * @param {number} mealId - Identifiant du plat.
+ * @param {string} userId - Identifiant de l'utilisateur.
+ * @returns {Promise<Object>} Résultat de l'opération avec un message de succès ou d'erreur.
+ * @throws {Error} Si le plat ou la note n'existe pas.
+ */
 async function removeRating(mealId, userId) {
   try {
     // Vérifier si le plat existe
@@ -83,7 +101,14 @@ async function removeRating(mealId, userId) {
   }
 }
 
-// Récupère la note d'un utilisateur pour un plat spécifique
+/**
+ * Récupère la note d'un utilisateur pour un plat spécifique.
+ * @async
+ * @param {number} mealId - Identifiant du plat.
+ * @param {string} userId - Identifiant de l'utilisateur.
+ * @returns {Promise<number|null>} La note si elle existe, sinon null.
+ * @throws {Error} En cas d'erreur d'accès à la base de données.
+ */
 async function getUserRating(mealId, userId) {
   try {
     const [rating] = await pool.query(`SELECT rating FROM ratings WHERE mealId = ? AND userId = ?`, [mealId, userId]);
@@ -94,8 +119,13 @@ async function getUserRating(mealId, userId) {
   }
 }
 
-// Calcule la moyenne des notes pour un plat spécifique
- 
+/**
+ * Calcule la moyenne des notes pour un plat spécifique.
+ * @async
+ * @param {number} mealId - Identifiant du plat.
+ * @returns {Promise<number|null>} La moyenne des notes ou null si aucune note.
+ * @throws {Error} En cas d'erreur d'accès à la base de données.
+ */
 async function getAverageRating(mealId) {
   try {
     const [result] = await pool.query(`

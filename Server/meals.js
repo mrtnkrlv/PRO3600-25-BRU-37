@@ -1,6 +1,14 @@
 import pool from './database.js'; // Import the pool 
 
-// Get an array with all meals in a given week
+/**
+ * @module meals
+ */
+
+/**
+ * Récupère tous les plats de la base de données, triés par leur position dans la semaine.
+ * @async
+ * @returns {Promise<Array>} Tableau d'objets représentant les plats.
+ */
 export async function getMeals(){
     try {
         const result = await pool.query(`
@@ -15,7 +23,12 @@ export async function getMeals(){
     }
 }
 
-// Get the tuple associated to mealId from the MEALS table
+/**
+ * Récupère un plat à partir de son identifiant.
+ * @async
+ * @param {number} mealId - Identifiant du plat.
+ * @returns {Promise<Object|null>} Objet plat ou null si non trouvé.
+ */
 export async function getMeal(mealId){
   try {
     const [result] = await pool.query(`
@@ -32,7 +45,37 @@ export async function getMeal(mealId){
   }
 }
 
-// Insert an element into the MEALS table
+/**
+ * Récupère l'identifiant d'un plat à partir de son nom.
+ * @async
+ * @param {string} mealName - Nom du plat.
+ * @returns {Promise<number|null>} Identifiant du plat ou null si non trouvé.
+ */
+export async function getMealByName(mealName){
+    const [result] = await pool.query(`
+      SELECT mealId as foodId
+      FROM meals
+      WHERE mealName = ?
+    `, [mealName])
+    
+    const firstRow = result[0]
+
+    if (firstRow) {
+      return firstRow.foodId  // This is the ID value
+    } else {
+      return null  // Or handle no result case as you want
+    }    
+}
+
+/**
+ * Ajoute un nouveau plat dans la base de données.
+ * @async
+ * @param {number} mealId - Identifiant du plat.
+ * @param {string} mealName - Nom du plat.
+ * @param {number} positionInWeek - Position du plat dans la semaine (0-5).
+ * @returns {Promise<Object>} Plat ajouté.
+ * @throws {Error} Si la position ou l'ID est invalide.
+ */
 export async function addMeal(mealId, mealName, positionInWeek) {
   const connection = await pool.getConnection();
   try {
@@ -65,7 +108,12 @@ export async function addMeal(mealId, mealName, positionInWeek) {
   }
 }
 
-
+/**
+ * Supprime un plat et ses dépendances de la base de données.
+ * @async
+ * @param {number} mealId - Identifiant du plat à supprimer.
+ * @returns {Promise<Object>} Résultat de la suppression.
+ */
 async function deleteMeal(mealId) {
   const connection = await pool.getConnection();
   try {
@@ -90,7 +138,11 @@ async function deleteMeal(mealId) {
   }
 }
 
-
+/**
+ * Récupère les plats programmés pour la semaine (position 1 à 5).
+ * @async
+ * @returns {Promise<Array>} Tableau des plats programmés.
+ */
 async function getScheduledMeals() {
   const [results] = await pool.query(`
     SELECT *
@@ -102,10 +154,12 @@ async function getScheduledMeals() {
 }
 
 /**
- * Modifie la place dans la semaine d'un plat
- * @param {number} mealId - ID du plat à modifier
- * @param {number} newPosition - Nouvelle position dans la semaine (0-5)
- * @returns {Promise<object>} Le plat mis à jour ou une erreur
+ * Modifie la position d'un plat dans la semaine.
+ * @async
+ * @param {number} mealId - Identifiant du plat.
+ * @param {number} newPosition - Nouvelle position (0-5).
+ * @returns {Promise<Object>} Plat mis à jour.
+ * @throws {Error} Si la position ou l'ID est invalide.
  */
 async function updateMealPosition(mealId, newPosition) {
   const connection = await pool.getConnection();
@@ -134,12 +188,12 @@ async function updateMealPosition(mealId, newPosition) {
     );
 
     await connection.commit();
-    console.log(`✅ Position du plat avec ID ${mealId} mise à jour à ${newPosition}`);
+    console.log(`Position du plat avec ID ${mealId} mise à jour à ${newPosition}`);
     return await getMeal(mealId); // Retourne le plat mis à jour
 
   } catch (error) {
     await connection.rollback();
-    console.error(`❌ Erreur lors de la modification de la position :`, error.message);
+    console.error(`Erreur lors de la modification de la position :`, error.message);
     throw error;
   } finally {
     connection.release();
@@ -161,9 +215,9 @@ async function insertTestMeals() {
   
     for (const meal of testMeals) {
         try { const result = await addMeal(meal.mealId, meal.mealName, meal.positionInWeek);
-        console.log(`✅ ${meal.mealName} ajouté :`, result[0]);
+        console.log(`${meal.mealName} ajouté :`, result[0]);
       } catch (error) {
-        console.error(`❌ Erreur lors de l'ajout de ${meal.mealName} :`, error.message);
+        console.error(`Erreur lors de l'ajout de ${meal.mealName} :`, error.message);
       }
     }
   
@@ -178,3 +232,5 @@ await insertTestMeals();
 //process.exit()
 
 */
+
+// console.log(await getMealByName('Couscous'))
