@@ -1,172 +1,130 @@
+/**
+ * @fileoverview
+ * Service de gestion des **likes** sur les plats :
+ *
+ * 1. Vérifie l’existence d’un plat (« meal ») et d’un utilisateur via la base
+ *    MySQL (driver **mysql2/promise**) en les mettant en cache (LRU).
+ * 2. Maintient un cache des likes d’un utilisateur pour éviter des requêtes
+ *    répétées.
+ * 3. Expose les opérations `addLikeToMeal` et `removeLikeFromMeal` qui
+ *    incrémentent/décrémentent le compteur de likes dans la table **meals**,
+ *    tout en conservant la cohérence du cache.
+ *
+ * @module likesService
+ */
+
 import pool from './database.js';
-import LRUCache  from '..LRUcache.js';
+import LRUCache from '..LRUcache.js'; // NB : chemin relatif à ajuster si besoin
 
-/** 
-async function addLikeToMeal(mealId, userId) {
-    // Vérifier si le plat existe
-    const [mealExists] = await pool.query(`
-        SELECT * FROM meals WHERE mealId = ?
-    `, [mealId]);
+/**
+ * Cache LRU : mappe `userId → mealId[]`.
+ * Capacité : 1000 utilisateurs.
+ *
+ * @type {LRUCache<(number|string), (number|string)[]>}
+ */
+const userLikesCache = new LRUCache(1000);
 
-    if (mealExists.length === 0) {
-        console.log("Plat introuvable");
-        return null;
-    }
-
-    // Vérifier si l'utilisateur existe
-    const [userExists] = await pool.query(`
-        SELECT * FROM user WHERE id = ?
-    `, [userId]);
-
-    if (userExists.length === 0) {
-        console.log("Utilisateur introuvable");
-        return null;
-    }
-
-    // Ajouter un like dans la table mealLikes (si elle existe)
-    const [alreadyLiked] = await pool.query(`
-        SELECT * FROM likes WHERE mealId = ? AND userId = ?
-    `, [mealId, userId]);
-
-    if (alreadyLiked.length > 0) {
-        console.log("Vous avez déjà liké ce plat");
-        return null;
-    }
-
-    await pool.query(`
-        INSERT INTO likes (mealId, userId)
-        VALUES (?, ?)
-    `, [mealId, userId]);
-    console.log("Like ajouté dans la table mealLikes");
-
-    // Mettre à jour le compteur de likes dans la table meals
-    await pool.query(`
-        UPDATE meals
-        SET likes = likes + 1
-        WHERE mealId = ?
-    `, [mealId]);
-    
-    console.log("Compteur de likes mis à jour pour le plat");
-    
-    return { success: true, message: "Like ajouté avec succès" };
-}
-
-async function removeLikeFromMeal(mealId, userId) {
-    // Vérifier si le plat existe
-    const [mealExists] = await pool.query(`
-        SELECT * FROM meals WHERE mealId = ?
-    `, [mealId]);
-
-    if (mealExists.length === 0) {
-        console.log("Plat introuvable");
-        return null;
-    }
-
-    // Vérifier si l'utilisateur a liké ce plat
-    const [alreadyLiked] = await pool.query(`
-        SELECT * FROM likes WHERE mealId = ? AND userId = ?
-    `, [mealId, userId]);
-
-    if (alreadyLiked.length === 0) {
-        console.log("Vous n'avez pas liké ce plat");
-        return null;
-    }
-
-    // Supprimer le like de la table mealLikes
-    await pool.query(`
-        DELETE FROM likes WHERE mealId = ? AND userId = ?
-    `, [mealId, userId]);
-    console.log("Like supprimé de la table mealLikes");
-
-    // Décrémenter le compteur de likes dans la table meals
-    await pool.query(`
-        UPDATE meals
-        SET likes = likes - 1
-        WHERE mealId = ?
-    `, [mealId]);
-    
-    console.log("Compteur de likes décrémenté pour le plat");
-    
-    return { success: true, message: "Like retiré avec succès" };
-}
-
-
-// Exemple d'utilisation
-async function main() {
-    const result = await addLikeToMeal(1, "paul.emptoz@telecom-sudparis.eu");
-    
-    if (result) {
-        console.log(result.message);
-    } else {
-        console.log("Le like n'a pas pu être ajouté.");
-    }
-
-    
-    const result2 = await removeLikeFromMeal(1, "paul.emptoz@telecom-sudparis.eu");
-    
-    if (result2) {
-        console.log(result2.message);
-    } else {
-        console.log("Le like n'a pas pu être retiré.");
-    }
-    
-    pool.end(); // Fermer le pool de connexions
-}
-
-main();
-**/
-
-const userLikesCache = new LRUCache(1000); //On a donc de quoi stocket les likes de 1000 utilisateurs
-
-//caches booléens pour éviter un SELECT
+/**
+ * Cache booléen : présence d’un plat (`mealId`) en BD.
+ *
+ * @type {LRUCache<(number|string), boolean>}
+ */
 const mealExistsCache = new LRUCache(1000);
+
+/**
+ * Cache booléen : présence d’un utilisateur (`userId`) en BD.
+ *
+ * @type {LRUCache<(number|string), boolean>}
+ */
 const userExistsCache = new LRUCache(1000);
 
-
-//vérifier/mettre en cache l'existence d'un plat 
+/**
+ * Vérifie (et met en cache) l’existence d’un plat.
+ *
+ * @async
+ * @param {(number|string)} mealId - Identifiant du plat.
+ * @returns {Promise<boolean>} `true` si le plat existe, sinon `false`.
+ */
 async function mealExists(mealId) {
   const hit = mealExistsCache.get(mealId);
-  if (hit !== undefined) { 
+  if (hit !== undefined) {
     return hit;
   }
 
-  const [rows] = await pool.query(`SELECT 1 FROM meals WHERE mealId = ?`, [mealId]);
+  const [rows] = await pool.query(
+    `SELECT 1 FROM meals WHERE mealId = ?`,
+    [mealId],
+  );
   const exists = rows.length > 0;
   mealExistsCache.set(mealId, exists);
   return exists;
 }
 
-//vérifier/mettre en cache l'existence d'un user
+/**
+ * Vérifie (et met en cache) l’existence d’un utilisateur.
+ *
+ * @async
+ * @param {(number|string)} userId - Identifiant de l’utilisateur.
+ * @returns {Promise<boolean>} `true` si l’utilisateur existe, sinon `false`.
+ */
 async function userExists(userId) {
   const hit = userExistsCache.get(userId);
-  if (hit !== undefined) { 
+  if (hit !== undefined) {
     return hit;
   }
 
-  const [rows] = await pool.query(`SELECT 1 FROM user WHERE id = ?`, [userId]);
+  const [rows] = await pool.query(
+    `SELECT 1 FROM user WHERE id = ?`,
+    [userId],
+  );
   const exists = rows.length > 0;
   userExistsCache.set(userId, exists);
   return exists;
 }
 
-//récupérer la liste des likes d’un user (avec cache)
+/**
+ * Récupère tous les identifiants de plats likés par un utilisateur, en
+ * consultant d’abord le cache LRU.
+ *
+ * @async
+ * @param {(number|string)} userId - Identifiant de l’utilisateur.
+ * @returns {Promise<(number|string)[]>} Tableau des `mealId` aimés.
+ */
 async function getUserLikes(userId) {
   let likes = userLikesCache.get(userId);
   if (likes) {
     return likes;
-  }                        
+  }
 
   const [rows] = await pool.query(
     `SELECT mealId FROM likes WHERE userId = ?`,
-    [userId]
+    [userId],
   );
-  likes = rows.map(r => r.mealId);
-  userLikesCache.set(userId, likes);             
+  likes = rows.map((r) => r.mealId);
+  userLikesCache.set(userId, likes);
   return likes;
 }
 
+
+/**
+ * Ajoute un like pour un plat donné.
+ * <br>Étapes :
+ * 1. Vérifie la présence du plat et de l’utilisateur (avec cache).
+ * 2. Vérifie que l’utilisateur n’a pas déjà liké ce plat.
+ * 3. Insère le like et incrémente le compteur dans **meals**.
+ * 4. Met à jour le cache `userLikesCache`.
+ *
+ * @async
+ * @param {(number|string)} mealId - Identifiant du plat.
+ * @param {(number|string)} userId - Identifiant de l’utilisateur.
+ * @returns {Promise<{success: true, message: string}|null>}
+ *          Confirmation ou `null` si opération impossible.
+ *
+ * @example
+ * await addLikeToMeal(12, 42);
+ */
 export async function addLikeToMeal(mealId, userId) {
-  //plat + user existent ?
+  // plat + user existent ?
   if (!(await mealExists(mealId))) {
     console.log('Plat introuvable');
     return null;
@@ -176,7 +134,7 @@ export async function addLikeToMeal(mealId, userId) {
     return null;
   }
 
-  //utilisateur a déjà like ?
+  // utilisateur a déjà like ?
   const likes = await getUserLikes(userId);
   if (likes.includes(mealId)) {
     console.log('Vous avez déjà liké ce plat');
@@ -184,20 +142,41 @@ export async function addLikeToMeal(mealId, userId) {
   }
 
   // insert + update compteur
-  await pool.query(`INSERT INTO likes (mealId, userId) VALUES (?, ?)`, [mealId, userId]);
-  await pool.query(`UPDATE meals SET likes = likes + 1 WHERE mealId = ?`, [mealId]);
+  await pool.query(
+    `INSERT INTO likes (mealId, userId) VALUES (?, ?)`,
+    [mealId, userId],
+  );
+  await pool.query(
+    `UPDATE meals SET likes = likes + 1 WHERE mealId = ?`,
+    [mealId],
+  );
 
-  //update cache
+  // update cache
   likes.push(mealId);
-  userLikesCache.set(userId, likes);              // (le .set le remonte en MRU)
+  userLikesCache.set(userId, likes);
 
   console.log('Like ajouté');
   return { success: true, message: 'Like ajouté avec succès' };
 }
 
-
+/**
+ * Supprime le like d’un utilisateur pour un plat.
+ * <br>Étapes :
+ * 1. Vérifie l’existence du plat et du like.
+ * 2. Supprime l’enregistrement dans **likes** et décrémente le compteur.
+ * 3. Met à jour le cache `userLikesCache`.
+ *
+ * @async
+ * @param {(number|string)} mealId - Identifiant du plat.
+ * @param {(number|string)} userId - Identifiant de l’utilisateur.
+ * @returns {Promise<{success: true, message: string}|null>}
+ *          Confirmation ou `null` si l’utilisateur n’avait pas liké ce plat.
+ *
+ * @example
+ * await removeLikeFromMeal(12, 42);
+ */
 export async function removeLikeFromMeal(mealId, userId) {
-  //plat et like existent ?
+  // plat et like existent ?
   if (!(await mealExists(mealId))) {
     console.log('Plat introuvable');
     return null;
@@ -209,13 +188,19 @@ export async function removeLikeFromMeal(mealId, userId) {
     return null;
   }
 
-  //delete + décrémenter compteur
-  await pool.query(`DELETE FROM likes WHERE mealId = ? AND userId = ?`, [mealId, userId]);
-  await pool.query(`UPDATE meals SET likes = likes - 1 WHERE mealId = ?`, [mealId]);
+  // delete + décrémenter compteur
+  await pool.query(
+    `DELETE FROM likes WHERE mealId = ? AND userId = ?`,
+    [mealId, userId],
+  );
+  await pool.query(
+    `UPDATE meals SET likes = likes - 1 WHERE mealId = ?`,
+    [mealId],
+  );
 
-  //update cache
+  // update cache
   likes.splice(likes.indexOf(mealId), 1);
-  userLikesCache.set(userId, likes);              // rafraîchit la position LRU
+  userLikesCache.set(userId, likes);
 
   console.log('Like retiré');
   return { success: true, message: 'Like retiré avec succès' };

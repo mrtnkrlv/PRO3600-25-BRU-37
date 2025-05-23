@@ -1,14 +1,31 @@
 import pool from './database.js';
 
-// Vérifier si une entrée existe dans une table donnée
+/**
+ * @module commentLikes
+ */
+
+/**
+ * Vérifie si une valeur existe dans une table donnée.
+ * @async
+ * @param {string} tableName - Nom de la table.
+ * @param {string} columnName - Nom de la colonne.
+ * @param {string|number} value - Valeur à vérifier.
+ * @returns {Promise<boolean>} True si la valeur existe, sinon false.
+ */
 async function existsInTable(tableName, columnName, value) {
   const [result] = await pool.query(`SELECT ${columnName} FROM ${tableName} WHERE ${columnName} = ?`, [value]);
   return result.length > 0;
 }
 
-// Créer un like pour un commentaire
-async function createLike(userId, mealId, commentId) {
-  try {
+/**
+ * Crée un like pour un commentaire donné.
+ * @async
+ * @param {string} userId - Identifiant de l'utilisateur.
+ * @param {number} mealId - Identifiant du plat.
+ * @param {number} commentId - Identifiant du commentaire.
+ * @returns {Promise<Object|null>} Résultat de la création ou null si échec.
+ */
+async function createLike(userId, mealId, commentId) {  try {
     // Vérifier que l'utilisateur existe
     if (!(await existsInTable('user', 'id', userId))) {
       console.log("Utilisateur introuvable");
@@ -41,7 +58,15 @@ async function createLike(userId, mealId, commentId) {
   }
 }
 
-// Ajouter un like à un commentaire et mettre à jour le compteur de likes
+/**
+ * Ajoute un like à un commentaire et met à jour le compteur de likes.
+ * @async
+ * @param {number} commentId - Identifiant du commentaire.
+ * @param {string} userId - Identifiant de l'utilisateur.
+ * @param {number} mealId - Identifiant du plat.
+ * @returns {Promise<Object>} Succès ou erreur.
+ * @throws {Error} Si le like existe déjà ou si le commentaire n'existe pas.
+ */
 async function addLikeToComment(commentId, userId, mealId) {
   const connection = await pool.getConnection();
   try {
@@ -91,48 +116,55 @@ async function addLikeToComment(commentId, userId, mealId) {
   }
 }
 
+/**
+ * Retire un like d'un commentaire et met à jour le compteur de likes.
+ * @async
+ * @param {number} commentId - Identifiant du commentaire.
+ * @param {string} userId - Identifiant de l'utilisateur.
+ * @returns {Promise<Object>} Succès ou erreur.
+ * @throws {Error} Si le like n'existe pas.
+ */
+async function removeLikeFromComment(commentId, userId) {
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
 
-  async function removeLikeFromComment(commentId, userId) {
-    const connection = await pool.getConnection();
-    try {
-      await connection.beginTransaction();
-  
-      // Vérifier l'existence du like
-      const [existingLike] = await connection.query(
-        'SELECT * FROM commentLikes WHERE commentId = ? AND userId = ?',
-        [commentId, userId]
-      );
-  
-      if (existingLike.length === 0) {
-        throw new Error('Like introuvable');
-      }
-  
-      // Opérations atomiques
-      await connection.query(
-        'DELETE FROM commentLikes WHERE commentId = ? AND userId = ?',
-        [commentId, userId]
-      );
-  
-      await connection.query(
-        'UPDATE comments SET likes = likes - 1 WHERE commentId = ?',
-        [commentId]
-      );
-  
-      await connection.commit();
-      return { success: true };
-    } catch (error) {
-      await connection.rollback();
-      console.error('Transaction annulée :', error.message);
-      throw error;
-    } finally {
-      connection.release();
+    // Vérifier l'existence du like
+    const [existingLike] = await connection.query(
+      'SELECT * FROM commentLikes WHERE commentId = ? AND userId = ?',
+      [commentId, userId]
+    );
+
+    if (existingLike.length === 0) {
+      throw new Error('Like introuvable');
     }
+
+    // Opérations atomiques
+    await connection.query(
+      'DELETE FROM commentLikes WHERE commentId = ? AND userId = ?',
+      [commentId, userId]
+    );
+
+    await connection.query(
+      'UPDATE comments SET likes = likes - 1 WHERE commentId = ?',
+      [commentId]
+    );
+
+    await connection.commit();
+    return { success: true };
+  } catch (error) {
+    await connection.rollback();
+    console.error('Transaction annulée :', error.message);
+    throw error;
+  } finally {
+    connection.release();
   }
+}
   
   
 
 // Fonction principale pour tester
-(async () => {
+/* (async () => {
   try {
     const like1 = await addLikeToComment(7, "paul.emptoz@telecom-sudparis.eu", 1);
 
@@ -147,3 +179,4 @@ async function addLikeToComment(commentId, userId, mealId) {
     pool.end(); // Fermer le pool de connexions
   }
 })();
+*/
