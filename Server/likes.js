@@ -14,7 +14,7 @@
  */
 
 import pool from './database.js';
-import LRUCache from '..LRUcache.js'; // NB : chemin relatif à ajuster si besoin
+import LRUCache from '../LRUcache.js'; // NB : chemin relatif à ajuster si besoin
 
 /**
  * Cache LRU : mappe `userId → mealId[]`.
@@ -90,7 +90,7 @@ async function userExists(userId) {
  * @param {(number|string)} userId - Identifiant de l’utilisateur.
  * @returns {Promise<(number|string)[]>} Tableau des `mealId` aimés.
  */
-async function getUserLikes(userId) {
+export async function getUserLikes(userId) {
   let likes = userLikesCache.get(userId);
   if (likes) {
     return likes;

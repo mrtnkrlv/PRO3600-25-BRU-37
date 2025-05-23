@@ -1,4 +1,4 @@
-class LRUCache {
+export default class LRUCache {
   /**
    * @param {number} capacity  capacité max du cache LRU
    */

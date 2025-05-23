@@ -10,7 +10,7 @@
  */
 
 import pool from './database.js';
-import LRUcache from '../LRUcache.js';
+import LRUCache from '../LRUcache.js';
 
 /** @constant {LRUCache<string|number, object>} */
 const commentCache = new LRUCache(1000)
