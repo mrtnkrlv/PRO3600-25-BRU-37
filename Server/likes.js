@@ -116,7 +116,7 @@ async function main() {
 main();
 **/
 
-const userLikesCache = new LRUCache(1000);
+const userLikesCache = new LRUCache(1000); //On a donc de quoi stocket les likes de 1000 utilisateurs
 
 //caches booléens pour éviter un SELECT
 const mealExistsCache = new LRUCache(1000);
