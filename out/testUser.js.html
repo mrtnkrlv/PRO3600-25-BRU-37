@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: testUser.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: testUser.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import pool from './database.js';
+import { getUser, createUser, deleteUser, modifyUsername, modifyPassword } from './user.js';
+
+/**
+ * @module testUser
+ */
+
+/**
+ * Tests unitaires pour le module User avec Jest.
+ * @module testUser
+ */
+jest.mock('./database.js', () => ({
+  query: jest.fn()
+}));
+
+describe('Module User', () => {
+  beforeEach(() => {
+    // Réinitialiser les mocks avant chaque test
+    jest.clearAllMocks();
+  });
+
+
+  describe('getUser', () => {
+    test('devrait retourner les données utilisateur quand l\'ID existe', async () => {
+      const mockUser = { id: 'test@example.com', username: 'Test User', password: 'hashedPassword' };
+      pool.query.mockResolvedValueOnce([[mockUser]]);
+      
+      const result = await getUser('test@example.com');
+      
+      expect(pool.query).toHaveBeenCalledWith(
+        expect.stringContaining('SELECT * FROM user WHERE id = ?'),
+        ['test@example.com']
+      );
+      expect(result).toEqual(mockUser);
+    });
+    
+    test('devrait retourner un tableau vide quand l\'ID n\'existe pas', async () => {
+      pool.query.mockResolvedValueOnce([[]]);
+      
+      const result = await getUser('nonexistent@example.com');
+      
+      expect(result).toBeUndefined();
+    });
+  });
+
+  
+  describe('createUser', () => {
+    test('devrait créer un utilisateur et retourner ses données', async () => {
+      const mockUser = { id: 'new@example.com', username: 'New User', password: 'password123' };
+      pool.query.mockResolvedValueOnce([{ insertId: 1 }]);
+      pool.query.mockResolvedValueOnce([[mockUser]]);
+      
+      const result = await createUser('new@example.com', 'password123', 'New User');
+      
+      expect(pool.query).toHaveBeenCalledWith(
+        expect.stringContaining('INSERT INTO user'),
+        ['new@example.com', 'password123', 'New User']
+      );
+      expect(result).toEqual(mockUser);
+    });
+    
+    test('devrait échouer si l\'utilisateur existe déjà', async () => {
+      pool.query.mockRejectedValueOnce(new Error('Duplicate entry'));
+      
+      await expect(createUser('existing@example.com', 'password', 'User')).rejects.toThrow('Duplicate entry');
+    });
+  });
+
+  
+  describe('deleteUser', () => {
+    test('devrait supprimer un utilisateur existant', async () => {
+      pool.query.mockResolvedValueOnce([{ affectedRows: 1 }]);
+      
+      const result = await deleteUser('test@example.com');
+      
+      expect(pool.query).toHaveBeenCalledWith(
+        expect.stringContaining('DELETE FROM user WHERE id = ?'),
+        ['test@example.com']
+      );
+      expect(result.affectedRows).toBe(1);
+    });
+    
+    test('devrait retourner 0 affected rows si l\'utilisateur n\'existe pas', async () => {
+      pool.query.mockResolvedValueOnce([{ affectedRows: 0 }]);
+      
+      const result = await deleteUser('nonexistent@example.com');
+      
+      expect(result.affectedRows).toBe(0);
+    });
+  });
+
+  
+  describe('modifyUsername', () => {
+    test('devrait modifier le nom d\'utilisateur', async () => {
+      pool.query.mockResolvedValueOnce([{ affectedRows: 1 }]);
+      
+      const result = await modifyUsername('test@example.com', 'New Username');
+      
+      expect(pool.query).toHaveBeenCalledWith(
+        expect.stringContaining('UPDATE user SET username = ? WHERE id = ?'),
+        ['New Username', 'test@example.com']
+      );
+      expect(result.affectedRows).toBe(1);
+    });
+    
+    test('devrait échouer si l\'utilisateur n\'existe pas', async () => {
+      pool.query.mockResolvedValueOnce([{ affectedRows: 0 }]);
+      
+      const result = await modifyUsername('nonexistent@example.com', 'New Username');
+      
+      expect(result.affectedRows).toBe(0);
+    });
+  });
+
+  
+  describe('modifyPassword', () => {
+    test('devrait modifier le mot de passe avec des identifiants valides', async () => {
+      pool.query.mockResolvedValueOnce([{ affectedRows: 1 }]);
+      
+      const result = await modifyPassword('test@example.com', 'oldPassword', 'newPassword');
+      
+      expect(pool.query).toHaveBeenCalledWith(
+        expect.stringContaining('UPDATE user SET password = ? WHERE id = ? AND password = ?'),
+        ['newPassword', 'test@example.com', 'oldPassword']
+      );
+      expect(result.affectedRows).toBe(1);
+    });
+    
+    test('devrait échouer si l\'ancien mot de passe est incorrect', async () => {
+      pool.query.mockResolvedValueOnce([{ affectedRows: 0 }]);
+      
+      const result = await modifyPassword('test@example.com', 'wrongPassword', 'newPassword');
+      
+      expect(result.affectedRows).toBe(0);
+    });
+  }); 
+}); </code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-commentLikes.html">commentLikes</a></li><li><a href="module-comments.html">comments</a></li><li><a href="module-database.html">database</a></li><li><a href="module-likes.html">likes</a></li><li><a href="module-meals.html">meals</a></li><li><a href="module-ratings.html">ratings</a></li><li><a href="module-testUser.html">testUser</a></li><li><a href="module-user.html">user</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Sun May 11 2025 15:42:40 GMT+0200 (heure d’été d’Europe centrale)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

@@ -10,7 +10,7 @@
  *    incrémentent/décrémentent le compteur de likes dans la table **meals**,
  *    tout en conservant la cohérence du cache.
  *
- * @module likesService
+ * @module Likes
  */
 
 import pool from './database.js';
@@ -61,6 +61,7 @@ async function mealExists(mealId) {
 }
 
 /**
+
  * Vérifie (et met en cache) l’existence d’un utilisateur.
  *
  * @async
@@ -205,3 +206,4 @@ export async function removeLikeFromMeal(mealId, userId) {
   console.log('Like retiré');
   return { success: true, message: 'Like retiré avec succès' };
 }
+

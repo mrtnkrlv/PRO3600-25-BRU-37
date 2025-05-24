@@ -28,25 +28,29 @@
         <!-- See later for adding desserts and entrées -->
 
         <li>
-            <section id="app">
-                <div class="container">
-                  <div class="row">
-                    <div class="col-6">
-                      <div class="comment">
-                    <p v-for="items in item" v-text="items"></p>
-                          </div>
-                        </div>
-                      </div>
-                  <div class="row">
-                    <div class="col-6">
-                  <textarea type="text" class="input" placeholder="Écrire un commentaire" v-model="newItem" @keyup.enter="addItem()"></textarea>
-                      <button v-on:click="addItem()" class='primaryContained float-right' type="submit">Add Comment</button>
-                    </div>
-                  </div>
-                </div>
-              </section>
+     
+            <form action="/plats" method="POST"> <!-- action: specifies server endpoint, method: specifies what kind of request to issue  -->
+                <textarea type="text" name="comment" placeholder="Laissez un commentaire">  </textarea> <!-- The 'email' field is the same as the user table's 'id' field -->
+                <input type="text" name="meal" required placeholder="Type de plat"> <!-- Match the DB's 'pwd' column -->
+                <br>
+                <button>Envoyer</button>
+            </form>
         </li>
-    </ul>
     
+        <li>
+            <ul class="list-inside"> 
+                <li class="comment-titles"> ➡️ Commentaires </li>
+                    <ul>
+                        <% comments.forEach(comment => { %>
+                        <li> 
+                            <%= comment.username %>
+                            <%= comment.content %>
+                        </li>
+                        <% }) %>
+                    </ul>
+                </li>
+            </ul>
+        </li>
+    </ul>  
 </body>
 </html>
