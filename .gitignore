@@ -6,4 +6,5 @@ Server/fichier_complet.txt
 views/fichier_complet.txt
 public/fichier_complet.txt
 fichier_complet.txt
-
+Server/tests/unitaires/fichier_complet.txt
+Server/tests/integration/fichier_complet.txt
