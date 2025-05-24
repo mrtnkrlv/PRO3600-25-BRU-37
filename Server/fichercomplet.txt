@@ -1,0 +1,1237 @@
+import pool from './database.js';
+
+/**
+ * @module commentLikes
+ */
+
+/**
+ * Vérifie si une valeur existe dans une table donnée.
+ * @async
+ * @param {string} tableName - Nom de la table.
+ * @param {string} columnName - Nom de la colonne.
+ * @param {string|number} value - Valeur à vérifier.
+ * @returns {Promise<boolean>} True si la valeur existe, sinon false.
+ */
+async function existsInTable(tableName, columnName, value) {
+  const [result] = await pool.query(`SELECT ${columnName} FROM ${tableName} WHERE ${columnName} = ?`, [value]);
+  return result.length > 0;
+}
+
+/**
+ * Crée un like pour un commentaire donné.
+ * @async
+ * @param {string} userId - Identifiant de l'utilisateur.
+ * @param {number} mealId - Identifiant du plat.
+ * @param {number} commentId - Identifiant du commentaire.
+ * @returns {Promise<Object|null>} Résultat de la création ou null si échec.
+ */
+async function createLike(userId, mealId, commentId) {  try {
+    // Vérifier que l'utilisateur existe
+    if (!(await existsInTable('user', 'id', userId))) {
+      console.log("Utilisateur introuvable");
+      return null;
+    }
+
+    // Vérifier que le plat existe
+    if (!(await existsInTable('meals', 'mealId', mealId))) {
+      console.log("Plat introuvable");
+      return null;
+    }
+
+    // Vérifier que le commentaire existe
+    if (!(await existsInTable('comments', 'commentId', commentId))) {
+      console.log("Commentaire introuvable");
+      return null;
+    }
+
+    // Ajouter le like dans la table commentLikes
+    const [result] = await pool.query(
+      'INSERT INTO commentLikes (userId, mealId, commentId) VALUES (?, ?, ?)',
+      [userId, mealId, commentId]
+    );
+
+    console.log("Like ajouté à la table commentLikes");
+    return result;
+  } catch (error) {
+    console.error('Erreur lors de la création du like :', error);
+    throw error;
+  }
+}
+
+/**
+ * Ajoute un like à un commentaire et met à jour le compteur de likes.
+ * @async
+ * @param {number} commentId - Identifiant du commentaire.
+ * @param {string} userId - Identifiant de l'utilisateur.
+ * @param {number} mealId - Identifiant du plat.
+ * @returns {Promise<Object>} Succès ou erreur.
+ * @throws {Error} Si le like existe déjà ou si le commentaire n'existe pas.
+ */
+async function addLikeToComment(commentId, userId, mealId) {
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+
+    // Vérifier si le like existe déjà
+    const [existingLike] = await connection.query(
+      'SELECT * FROM commentLikes WHERE commentId = ? AND userId = ?',
+      [commentId, userId]
+    );
+
+    if (existingLike.length > 0) {
+      throw new Error('Like déjà existant');
+    }
+
+    // Vérifier l'existence du commentaire
+    const [commentExists] = await connection.query(
+      'SELECT * FROM comments WHERE commentId = ?',
+      [commentId]
+    );
+
+    if (commentExists.length === 0) {
+      throw new Error('Commentaire introuvable');
+    }
+
+    // Ajouter le like dans la table commentLikes
+    await connection.query(
+      'INSERT INTO commentLikes (userId, mealId, commentId) VALUES (?, ?, ?)',
+      [userId, mealId, commentId]
+    );
+
+    // Mettre à jour le compteur de likes dans la table comments
+    await connection.query(
+      'UPDATE comments SET likes = likes + 1 WHERE commentId = ?',
+      [commentId]
+    );
+
+    await connection.commit();
+    console.log("Like ajouté et compteur mis à jour avec succès.");
+    return { success: true };
+  } catch (error) {
+    await connection.rollback();
+    console.error('Transaction annulée :', error.message);
+    throw error;
+  } finally {
+    connection.release();
+  }
+}
+
+/**
+ * Retire un like d'un commentaire et met à jour le compteur de likes.
+ * @async
+ * @param {number} commentId - Identifiant du commentaire.
+ * @param {string} userId - Identifiant de l'utilisateur.
+ * @returns {Promise<Object>} Succès ou erreur.
+ * @throws {Error} Si le like n'existe pas.
+ */
+async function removeLikeFromComment(commentId, userId) {
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+
+    // Vérifier l'existence du like
+    const [existingLike] = await connection.query(
+      'SELECT * FROM commentLikes WHERE commentId = ? AND userId = ?',
+      [commentId, userId]
+    );
+
+    if (existingLike.length === 0) {
+      throw new Error('Like introuvable');
+    }
+
+    // Opérations atomiques
+    await connection.query(
+      'DELETE FROM commentLikes WHERE commentId = ? AND userId = ?',
+      [commentId, userId]
+    );
+
+    await connection.query(
+      'UPDATE comments SET likes = likes - 1 WHERE commentId = ?',
+      [commentId]
+    );
+
+    await connection.commit();
+    return { success: true };
+  } catch (error) {
+    await connection.rollback();
+    console.error('Transaction annulée :', error.message);
+    throw error;
+  } finally {
+    connection.release();
+  }
+}
+  
+  
+
+// Fonction principale pour tester
+/* (async () => {
+  try {
+    const like1 = await addLikeToComment(7, "paul.emptoz@telecom-sudparis.eu", 1);
+
+    if (like1) {
+      console.log("Like créé :", like1);
+    } else {
+      console.log("Le like n'a pas pu être créé.");
+    }
+  } catch (error) {
+    console.error('Erreur dans la fonction principale :', error);
+  } finally {
+    pool.end(); // Fermer le pool de connexions
+  }
+})();
+*/import pool from './database.js';
+
+/**
+ * @module comments
+ */
+
+/**
+ * Récupère tous les commentaires.
+ * @async
+ * @returns {Promise<Array>} Liste des commentaires.
+ * @throws {Error} En cas d'erreur lors de la récupération.
+ */
+export async function getComments() {
+    try {
+        const [result] = await pool.query(`
+            SELECT *
+            FROM comments`);
+            return result; 
+    } catch (error) {
+        console.error(`Erreur lors de la récupération des commentaires`);
+        throw error; // Propagation de l'erreur pour gestion en amont`)
+    }
+}
+
+/**
+ * Récupère un commentaire par son identifiant.
+ * @async
+ * @param {number} commentId - Identifiant du commentaire.
+ * @returns {Promise<Object>} Le commentaire trouvé.
+ * @throws {Error} En cas d'erreur ou si le commentaire n'existe pas.
+ */
+export async function getComment(commentId) {
+    try {
+        const [result] = await pool.query(`
+            SELECT *
+            FROM comments
+            WHERE commentId = ?
+        `, [commentId]);
+        return result[0]; // Retourne le premier résultat (un seul commentaire)
+    } catch (error) {
+        console.error(`Erreur lors de la récupération du commentaire ${commentId} : ${error.message}`);
+        throw error; // Propagation de l'erreur pour gestion en amont
+    }
+}
+
+/**
+ * Crée un nouveau commentaire pour un plat.
+ * @async
+ * @param {number} mealId - Identifiant du plat.
+ * @param {string} userId - Identifiant de l'utilisateur.
+ * @param {string} content - Contenu du commentaire.
+ * @param {number} [commentParentId] - Identifiant du commentaire parent (optionnel).
+ * @returns {Promise<Object>} Le commentaire créé.
+ */
+export async function createComment(mealId, userId, content, commentParentId){ /* The other attributes should be 
+    initialized automatically and commentaryParentId is optional */
+    const [result] = await pool.query(`   
+        INSERT INTO comments (mealId, userId, content, commentParentId)
+        VALUES (?, ?, ?, ?)
+    `, [mealId, userId, content, commentParentId])
+    const commentId = await result.insertId
+    // console.log(result)
+    return getComment(commentId)// insertId return the generated ID
+}
+
+/**
+ * Supprime un commentaire par son identifiant.
+ * @async
+ * @param {number} commentId - Identifiant du commentaire à supprimer.
+ * @returns {Promise<Object>} Résultat de la suppression.
+ */
+export async function deleteComment(commentId){
+    const [result] = await pool.query(`   
+        DELETE FROM comments
+        WHERE commentId = ?
+        ` ,[commentId])
+    return result 
+}
+
+/**
+ * Récupère tous les commentaires associés à un plat.
+ * @async
+ * @param {number} mealId - Identifiant du plat.
+ * @returns {Promise<Array>} Liste des commentaires du plat.
+ */
+export async function getCommentsByMeal(mealId) {
+    const query = `SELECT * FROM comments WHERE mealId = ?`;
+    const [tab] = await pool.query(query, [mealId]);
+    return tab;
+}
+
+/**
+ * Récupère tous les commentaires d'un utilisateur.
+ * @async
+ * @param {string} userId - Identifiant de l'utilisateur.
+ * @returns {Promise<Array>} Liste des commentaires de l'utilisateur.
+ */
+export async function getCommentsByUser(userId) {
+    try {
+        const [result] = await pool.query(`
+            SELECT * FROM comments WHERE commentId = ?
+        `, [commentId]);
+        return result[0];
+    } catch (error) {
+        console.error(`Erreur lors de la récupération du commentaire : ${error.message}`);
+        throw error;
+    }
+}
+
+/**
+ * Met à jour le contenu d'un commentaire.
+ * @async
+ * @param {number} commentId - Identifiant du commentaire.
+ * @param {string} newContent - Nouveau contenu du commentaire.
+ * @returns {Promise<Object>} Message de succès.
+ */
+export async function updateComment(commentId, newContent) {
+    const query = `UPDATE comments SET content = ? WHERE commentsId = ?`;
+    await pool.query(query, [newContent, commentId]);
+    return { message: 'Comments updated successfuly' };
+}
+
+
+// Exemple d'utilisation des fonctions
+
+/* (async () => {
+    try {
+        // Création d'un nouveau commentaire (sans parent)
+        const createNewComment1 = await createComment(1, "paul.emptoz@telecom-sudparis.eu",null, "Le couscous était super !");
+        console.log("Nouveau commentaire créé :", createNewComment1);
+
+        // Suppression d'un commentaire par son ID
+        const deleteComment1 = await deleteComment(9);
+        console.log("Résultat de la suppression :", deleteComment1);
+    } catch (error) {
+        console.error("Une erreur est survenue :", error.message);
+    }
+})();
+*/
+
+// console.log(await getComments())import mysql from 'mysql2/promise';
+import dotenv from 'dotenv';
+dotenv.config(); // No path needed
+
+/**
+ * @module database
+ */
+
+/**
+ * Pool de connexions MySQL pour accéder à la base de données.
+ * @type {object}
+ */
+const pool = mysql.createPool({
+  host: process.env.MYSQL_HOST,
+  user: process.env.MYSQL_USER,
+  password: process.env.MYSQL_PASSWORD,
+  database: process.env.MYSQL_DATABASE
+});
+
+export default pool;import pool from './database.js';
+
+/**
+ * @module likes
+ */
+
+/** Ajoute un like à un plat pour un utilisateur.
+* @async
+* @param {number} mealId - Identifiant du plat.
+* @param {string} userId - Identifiant de l'utilisateur.
+* @returns {Promise<Object|null>} Résultat de l'opération ou null si échec.
+*/
+async function addLikeToMeal(mealId, userId) {
+    // Vérifier si le plat existe
+    const [mealExists] = await pool.query(`
+        SELECT * FROM meals WHERE mealId = ?
+    `, [mealId]);
+
+    if (mealExists.length === 0) {
+        console.log("Plat introuvable");
+        return null;
+    }
+
+    // Vérifier si l'utilisateur existe
+    const [userExists] = await pool.query(`
+        SELECT * FROM user WHERE id = ?
+    `, [userId]);
+
+    if (userExists.length === 0) {
+        console.log("Utilisateur introuvable");
+        return null;
+    }
+
+    // Ajouter un like dans la table mealLikes (si elle existe)
+    const [alreadyLiked] = await pool.query(`
+        SELECT * FROM likes WHERE mealId = ? AND userId = ?
+    `, [mealId, userId]);
+
+    if (alreadyLiked.length > 0) {
+        console.log("Vous avez déjà liké ce plat");
+        return null;
+    }
+
+    await pool.query(`
+        INSERT INTO likes (mealId, userId)
+        VALUES (?, ?)
+    `, [mealId, userId]);
+    console.log("Like ajouté dans la table mealLikes");
+
+    // Mettre à jour le compteur de likes dans la table meals
+    await pool.query(`
+        UPDATE meals
+        SET likes = likes + 1
+        WHERE mealId = ?
+    `, [mealId]);
+    
+    console.log("Compteur de likes mis à jour pour le plat");
+    
+    return { success: true, message: "Like ajouté avec succès" };
+}
+
+/**
+ * Retire un like d'un plat pour un utilisateur.
+ * @async
+ * @param {number} mealId - Identifiant du plat.
+ * @param {string} userId - Identifiant de l'utilisateur.
+ * @returns {Promise<Object|null>} Résultat de l'opération ou null si échec.
+ */
+async function removeLikeFromMeal(mealId, userId) {
+    // Vérifier si le plat existe
+    const [mealExists] = await pool.query(`
+        SELECT * FROM meals WHERE mealId = ?
+    `, [mealId]);
+
+    if (mealExists.length === 0) {
+        console.log("Plat introuvable");
+        return null;
+    }
+
+    // Vérifier si l'utilisateur a liké ce plat
+    const [alreadyLiked] = await pool.query(`
+        SELECT * FROM likes WHERE mealId = ? AND userId = ?
+    `, [mealId, userId]);
+
+    if (alreadyLiked.length === 0) {
+        console.log("Vous n'avez pas liké ce plat");
+        return null;
+    }
+
+    // Supprimer le like de la table mealLikes
+    await pool.query(`
+        DELETE FROM likes WHERE mealId = ? AND userId = ?
+    `, [mealId, userId]);
+    console.log("Like supprimé de la table mealLikes");
+
+    // Décrémenter le compteur de likes dans la table meals
+    await pool.query(`
+        UPDATE meals
+        SET likes = likes - 1
+        WHERE mealId = ?
+    `, [mealId]);
+    
+    console.log("Compteur de likes décrémenté pour le plat");
+    
+    return { success: true, message: "Like retiré avec succès" };
+}
+
+
+/*  Exemple d'utilisation
+async function main() {
+    const result = await addLikeToMeal(1, "paul.emptoz@telecom-sudparis.eu");
+    
+    if (result) {
+        console.log(result.message);
+    } else {
+        console.log("Le like n'a pas pu être ajouté.");
+    }
+
+    
+    const result2 = await removeLikeFromMeal(1, "paul.emptoz@telecom-sudparis.eu");
+    
+    if (result2) {
+        console.log(result2.message);
+    } else {
+        console.log("Le like n'a pas pu être retiré.");
+    }
+    
+    pool.end(); // Fermer le pool de connexions
+}
+
+main();
+*/
+import pool from './database.js'; // Import the pool 
+
+/**
+ * @module meals
+ */
+
+/**
+ * Récupère tous les plats de la base de données, triés par leur position dans la semaine.
+ * @async
+ * @returns {Promise<Array>} Tableau d'objets représentant les plats.
+ */
+export async function getMeals(){
+    try {
+        const result = await pool.query(`
+          SELECT *
+          FROM meals
+          ORDER BY positionInWeek
+            `);
+        return result;
+    }
+    catch (error) {
+        console.error(`Erreur dans la récupération des plats`, error);
+    }
+}
+
+/**
+ * Récupère un plat à partir de son identifiant.
+ * @async
+ * @param {number} mealId - Identifiant du plat.
+ * @returns {Promise<Object|null>} Objet plat ou null si non trouvé.
+ */
+export async function getMeal(mealId){
+  try {
+    const [result] = await pool.query(`
+      SELECT *
+      FROM meals
+      WHERE mealId = ?
+    `, [mealId]);
+    
+    return result[0] || null;
+    
+  } catch (error) {
+    console.error(`Erreur lors de la récupération du plat ${mealId}:`, error);
+    throw error;
+  }
+}
+
+/**
+ * Récupère l'identifiant d'un plat à partir de son nom.
+ * @async
+ * @param {string} mealName - Nom du plat.
+ * @returns {Promise<number|null>} Identifiant du plat ou null si non trouvé.
+ */
+export async function getMealByName(mealName){
+    const [result] = await pool.query(`
+      SELECT mealId as foodId
+      FROM meals
+      WHERE mealName = ?
+    `, [mealName])
+    
+    const firstRow = result[0]
+
+    if (firstRow) {
+      return firstRow.foodId  // This is the ID value
+    } else {
+      return null  // Or handle no result case as you want
+    }    
+}
+
+/**
+ * Ajoute un nouveau plat dans la base de données.
+ * @async
+ * @param {number} mealId - Identifiant du plat.
+ * @param {string} mealName - Nom du plat.
+ * @param {number} positionInWeek - Position du plat dans la semaine (0-5).
+ * @returns {Promise<Object>} Plat ajouté.
+ * @throws {Error} Si la position ou l'ID est invalide.
+ */
+export async function addMeal(mealId, mealName, positionInWeek) {
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+
+    // Check the position of meal you add
+    if (!Number.isInteger(positionInWeek) || positionInWeek < 0 || positionInWeek > 5) {
+      throw new Error('positionInWeek doit être un entier entre 0 (non placé) et 5');
+    }
+    // Check of the unicity of the ID
+    const existingMeal = await getMeal(mealId);
+    if (existingMeal) {
+      throw new Error(`Le plat avec l'ID ${mealId} existe déjà`);
+    }
+
+    await connection.query(`
+      INSERT INTO meals (mealId, mealName, positionInWeek)
+      VALUES (?, ?, ?)
+    `, [mealId, mealName, positionInWeek]);
+
+    await connection.commit();
+    return getMeal(mealId);
+    
+  } catch (error) {
+    await connection.rollback();
+    console.error('Erreur lors de l\'ajout du plat:', error.message);
+    throw error;
+  } finally {
+    connection.release();
+  }
+}
+
+/**
+ * Supprime un plat et ses dépendances de la base de données.
+ * @async
+ * @param {number} mealId - Identifiant du plat à supprimer.
+ * @returns {Promise<Object>} Résultat de la suppression.
+ */
+async function deleteMeal(mealId) {
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+    
+    // Suppression des dépendances
+    await connection.query('DELETE FROM mealGrades WHERE mealId = ?', [mealId]);
+    await connection.query('DELETE FROM comments WHERE mealId = ?', [mealId]);
+    
+    // Suppression du plat
+    await connection.query('DELETE FROM meals WHERE mealId = ?', [mealId]);
+    
+    await connection.commit();
+    return { success: true };
+    
+  } catch (error) {
+    await connection.rollback();
+    console.error('Erreur lors de la suppression:', error);
+    throw error;
+  } finally {
+    connection.release();
+  }
+}
+
+/**
+ * Récupère les plats programmés pour la semaine (position 1 à 5).
+ * @async
+ * @returns {Promise<Array>} Tableau des plats programmés.
+ */
+async function getScheduledMeals() {
+  const [results] = await pool.query(`
+    SELECT *
+    FROM meals
+    WHERE positionInWeek BETWEEN 1 AND 5
+    ORDER BY positionInWeek ASC
+  `);
+  return results;
+}
+
+/**
+ * Modifie la position d'un plat dans la semaine.
+ * @async
+ * @param {number} mealId - Identifiant du plat.
+ * @param {number} newPosition - Nouvelle position (0-5).
+ * @returns {Promise<Object>} Plat mis à jour.
+ * @throws {Error} Si la position ou l'ID est invalide.
+ */
+async function updateMealPosition(mealId, newPosition) {
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+
+    // Validation de la nouvelle position
+    if (!Number.isInteger(newPosition) || newPosition < 0 || newPosition > 5) {
+      throw new Error('La nouvelle position doit être un entier entre 0 (non placé) et 5');
+    }
+
+    // Vérification de l'existence du plat
+    const [mealExists] = await connection.query(
+      'SELECT * FROM meals WHERE mealId = ?',
+      [mealId]
+    );
+
+    if (mealExists.length === 0) {
+      throw new Error(`Aucun plat trouvé avec l'ID ${mealId}`);
+    }
+
+    // Mise à jour de la position dans la semaine
+    await connection.query(
+      'UPDATE meals SET positionInWeek = ? WHERE mealId = ?',
+      [newPosition, mealId]
+    );
+
+    await connection.commit();
+    console.log(`✅ Position du plat avec ID ${mealId} mise à jour à ${newPosition}`);
+    return await getMeal(mealId); // Retourne le plat mis à jour
+
+  } catch (error) {
+    await connection.rollback();
+    console.error(`❌ Erreur lors de la modification de la position :`, error.message);
+    throw error;
+  } finally {
+    connection.release();
+  }
+}
+
+
+// Tests
+
+/*
+async function insertTestMeals() {
+    const testMeals = [
+      { mealId: 4, mealName: 'Poulet rôti', positionInWeek: 1 },
+      { mealId: 5, mealName: 'Spaghetti bolognaise', positionInWeek: 2 },
+      { mealId: 6, mealName: 'Tacos végétariens', positionInWeek: 3 },
+      { mealId: 7, mealName: 'Saumon grillé', positionInWeek: 4 },
+      { mealId: 8, mealName: 'Burger maison', positionInWeek: 5 }
+    ];
+  
+    for (const meal of testMeals) {
+        try { const result = await addMeal(meal.mealId, meal.mealName, meal.positionInWeek);
+        console.log(`✅ ${meal.mealName} ajouté :`, result[0]);
+      } catch (error) {
+        console.error(`❌ Erreur lors de l'ajout de ${meal.mealName} :`, error.message);
+      }
+    }
+  
+    process.exit(); // termine le script une fois terminé
+  }
+  
+await insertTestMeals();
+
+// const result = await addMeal(1, "Couscous", 5);
+
+//console.log(result)
+//process.exit()
+
+*/
+
+// console.log(await getMealByName('Couscous'))import pool from './database.js';
+
+/**
+ * @module ratings
+ */
+
+/**
+ * Ajoute ou met à jour la note d'un utilisateur pour un plat donné.
+ * @async
+ * @param {number} mealId - Identifiant du plat.
+ * @param {string} userId - Identifiant de l'utilisateur.
+ * @param {number} rating - Note à donner (entier entre 1 et 5).
+ * @returns {Promise<Object>} Résultat de l'opération avec un message de succès ou d'erreur.
+ * @throws {Error} Si la note, le plat ou l'utilisateur n'est pas valide.
+ */
+async function addOrUpdateRating(mealId, userId, rating) {
+  try {
+    // Validation de la note
+    if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
+      throw new Error("La note doit être un entier entre 1 et 5.");
+    }
+
+    // Vérification de l'existence du plat
+    const [mealExists] = await pool.query(`SELECT * FROM meals WHERE mealId = ?`, [mealId]);
+    if (mealExists.length === 0) {
+      throw new Error("Plat introuvable.");
+    }
+
+    // Vérification de l'existence de l'utilisateur
+    const [userExists] = await pool.query(`SELECT * FROM user WHERE id = ?`, [userId]);
+    if (userExists.length === 0) {
+      throw new Error("Utilisateur introuvable.");
+    }
+
+    // Vérification si une note existe déjà
+    const [existingRating] = await pool.query(`SELECT * FROM ratings WHERE mealId = ? AND userId = ?`, [mealId, userId]);
+
+    if (existingRating.length > 0) {
+      // Mise à jour de la note existante
+      await pool.query(`UPDATE ratings SET rating = ? WHERE mealId = ? AND userId = ?`, [rating, mealId, userId]);
+      console.log("Note mise à jour.");
+    } else {
+      // Ajout d'une nouvelle note
+      await pool.query(`INSERT INTO ratings (mealId, userId, rating) VALUES (?, ?, ?)`, [mealId, userId, rating]);
+      console.log("Nouvelle note ajoutée.");
+    }
+
+    // Recalculer la moyenne des notes pour ce plat
+    const [allRatings] = await pool.query(`SELECT rating FROM ratings WHERE mealId = ?`, [mealId]);
+    const totalRatings = allRatings.reduce((sum, item) => sum + item.rating, 0);
+    const averageRating = allRatings.length > 0 ? totalRatings / allRatings.length : 0;
+
+    // Mettre à jour la moyenne dans la table meals
+    await pool.query(`UPDATE meals SET averageRating = ?, ratingCount = ? WHERE mealId = ?`, [averageRating, allRatings.length, mealId]);
+
+    return { success: true, message: existingRating.length > 0 ? "Note mise à jour." : "Note ajoutée." };
+  } catch (error) {
+    console.error(`Erreur lors de l'ajout ou de la mise à jour de la note : ${error.message}`);
+    throw error;
+  }
+}
+
+/**
+ * Supprime la note d'un utilisateur pour un plat spécifique.
+ * @async
+ * @param {number} mealId - Identifiant du plat.
+ * @param {string} userId - Identifiant de l'utilisateur.
+ * @returns {Promise<Object>} Résultat de l'opération avec un message de succès ou d'erreur.
+ * @throws {Error} Si le plat ou la note n'existe pas.
+ */
+async function removeRating(mealId, userId) {
+  try {
+    // Vérifier si le plat existe
+    const [mealExists] = await pool.query(`SELECT * FROM meals WHERE mealId = ?`, [mealId]);
+    if (mealExists.length === 0) {
+      throw new Error("Plat introuvable.");
+    }
+
+    // Vérifier si une note existe pour cet utilisateur et ce plat
+    const [existingRating] = await pool.query(`SELECT * FROM ratings WHERE mealId = ? AND userId = ?`, [mealId, userId]);
+    if (existingRating.length === 0) {
+      throw new Error("Note inexistante pour ce plat et cet utilisateur.");
+    }
+
+    // Supprimer la note
+    await pool.query(`DELETE FROM ratings WHERE mealId = ? AND userId = ?`, [mealId, userId]);
+    console.log("Note supprimée.");
+
+    // Recalculer la moyenne des notes pour ce plat
+    const [newAllRatings] = await pool.query(`SELECT rating FROM ratings WHERE mealId = ?`, [mealId]);
+    const totalRatings = newAllRatings.reduce((sum, item) => sum + item.rating, 0);
+    const averageRating = newAllRatings.length > 0 ? totalRatings / newAllRatings.length : 0;
+
+    // Mettre à jour la moyenne dans la table meals
+    await pool.query(`UPDATE meals SET averageRating = ?, ratingCount = ? WHERE mealId = ?`, [averageRating, newAllRatings.length, mealId]);
+
+    return { success: true, message: "Note supprimée." };
+  } catch (error) {
+    console.error(`Erreur lors de la suppression de la note : ${error.message}`);
+    throw error;
+  }
+}
+
+/**
+ * Récupère la note d'un utilisateur pour un plat spécifique.
+ * @async
+ * @param {number} mealId - Identifiant du plat.
+ * @param {string} userId - Identifiant de l'utilisateur.
+ * @returns {Promise<number|null>} La note si elle existe, sinon null.
+ * @throws {Error} En cas d'erreur d'accès à la base de données.
+ */
+async function getUserRating(mealId, userId) {
+  try {
+    const [rating] = await pool.query(`SELECT rating FROM ratings WHERE mealId = ? AND userId = ?`, [mealId, userId]);
+    return rating.length > 0 ? rating[0].rating : null;
+  } catch (error) {
+    console.error(`Erreur lors de la récupération de la note : ${error.message}`);
+    throw error;
+  }
+}
+
+/**
+ * Calcule la moyenne des notes pour un plat spécifique.
+ * @async
+ * @param {number} mealId - Identifiant du plat.
+ * @returns {Promise<number|null>} La moyenne des notes ou null si aucune note.
+ * @throws {Error} En cas d'erreur d'accès à la base de données.
+ */
+async function getAverageRating(mealId) {
+  try {
+    const [result] = await pool.query(`
+      SELECT AVG(rating) AS averageRating 
+      FROM ratings 
+      WHERE mealId = ?
+    `, [mealId]);
+
+    return result[0].averageRating || null;
+  } catch (error) {
+    console.error(`Erreur lors du calcul de la moyenne des notes : ${error.message}`);
+    throw error;
+  }
+}
+
+// Exemple d'utilisation des fonctions :
+(async () => {
+  try {
+    // Ajouter ou mettre à jour une note :
+    const updatedRating = await addOrUpdateRating(1, "paul.emptoz@telecom-sudparis.eu", 4);
+    console.log("Note ajoutée ou mise à jour :", updatedRating);
+
+    // Récupérer une note spécifique :
+    const userRating = await getUserRating(1, "paul.emptoz@telecom-sudparis.eu");
+    console.log("Note utilisateur :", userRating);
+
+    // Calculer la moyenne des notes :
+    const averageRating = await getAverageRating(1);
+    console.log("Moyenne des notes :", averageRating);
+
+    // Supprimer une note :
+    const deletedRating = await removeRating(1, "paul.emptoz@telecom-sudparis.eu");
+    console.log(deletedRating.message);
+  } catch (error) {
+    console.error('Une erreur est survenue :', error.message);
+  } finally {
+    pool.end(); // Fermer le pool après utilisation.
+  }
+})();
+CREATE DATABASE mainDb;
+USE mainDb;
+
+CREATE TABLE mainTbl (
+    id integer PRIMARY KEY AUTO_INCREMENT,
+    title VARCHAR(255) NOT NULL,
+    contents TEXT NOT NULL,
+    created TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+INSERT INTO mainTbl (title, contents)
+VALUES
+("USR1", "Description 1"),
+("USR2", "Description 2");
+
+USE mainDb;
+
+CREATE TABLE commentLikes (
+    likeId INTEGER AUTO_INCREMENT PRIMARY KEY,
+    userId VARCHAR(255) NOT NULL,  
+    mealId INTEGER NOT NULL,
+    commentId INTEGER NOT NULL,
+    FOREIGN KEY (userId) REFERENCES user(id),
+    FOREIGN KEY (mealId) REFERENCES meals(mealId),
+    FOREIGN KEY (commentId) REFERENCES comments(commentId)
+);
+USE mainDb;
+
+
+CREATE TABLE comments (
+    commentId INTEGER AUTO_INCREMENT PRIMARY KEY,
+    mealId INTEGER NOT NULL,
+    userId VARCHAR(255) NOT NULL,  
+    commentParentId INTEGER, -- to be able to respond to a commentary 
+    dateCreation DATE DEFAULT (CURRENT_DATE),
+    content TEXT NOT null,
+    likes INTEGER DEFAULT 0,
+    dislikes INTEGER DEFAULT 0,
+    FOREIGN KEY (mealId) REFERENCES meals(mealId), 
+    FOREIGN KEY (userId) REFERENCES user(id),
+    FOREIGN KEY (commentParentId) REFERENCES comments(commentId) 
+);
+
+
+USE mainDb;
+
+CREATE TABLE likes (
+    likeId INTEGER AUTO_INCREMENT PRIMARY KEY,
+    userId VARCHAR(255) NOT NULL,  
+    mealId INTEGER NOT NULL,
+    FOREIGN KEY (userId) REFERENCES user(id),
+    FOREIGN KEY (mealId) REFERENCES meals(mealId);
+);USE mainDb;
+
+-- ADD: mealImage LONGBLOB 
+
+CREATE TABLE meals (
+  mealId INTEGER PRIMARY KEY,
+  mealName VARCHAR(255) NOT NULL,
+  likes INTEGER DEFAULT 0,
+  positionInWeek INTEGER, -- Between 0 and 5
+  averageRating DECIMAL(3,2) DEFAULT 0.00, -- Nouvelle colonne
+  ratingCount INTEGER DEFAULT 0 -- Nouvelle colonne
+);
+CREATE TABLE ratings (
+    mealId INT,
+    userId VARCHAR(255) NOT NULL,
+    rating INT NOT NULL,
+    PRIMARY KEY (mealId, userId),  -- Création d'une clé primaire composite car un utilisateur ne peut noter un même plat qu'une fois
+    FOREIGN KEY (mealId) REFERENCES meals(mealId),
+    FOREIGN KEY (userId) REFERENCES user(id)
+) ;USE mainDb
+
+CREATE TABLE user (
+    id VARCHAR(255) PRIMARY KEY, -- TSP email for authentification
+    pwd VARCHAR(255) NOT NULL, -- Password
+    username TEXT NOT NULL, -- Username
+    accCreated BOOLEAN -- To check if the account has been created or not (for redirections)
+);
+
+
+import pool from './database.js';
+import { getUser, createUser, deleteUser, modifyUsername, modifyPassword } from './user.js';
+
+/**
+ * @module testUser
+ */
+
+/**
+ * Tests unitaires pour le module User avec Jest.
+ * @module testUser
+ */
+jest.mock('./database.js', () => ({
+  query: jest.fn()
+}));
+
+describe('Module User', () => {
+  beforeEach(() => {
+    // Réinitialiser les mocks avant chaque test
+    jest.clearAllMocks();
+  });
+
+
+  describe('getUser', () => {
+    test('devrait retourner les données utilisateur quand l\'ID existe', async () => {
+      const mockUser = { id: 'test@example.com', username: 'Test User', password: 'hashedPassword' };
+      pool.query.mockResolvedValueOnce([[mockUser]]);
+      
+      const result = await getUser('test@example.com');
+      
+      expect(pool.query).toHaveBeenCalledWith(
+        expect.stringContaining('SELECT * FROM user WHERE id = ?'),
+        ['test@example.com']
+      );
+      expect(result).toEqual(mockUser);
+    });
+    
+    test('devrait retourner un tableau vide quand l\'ID n\'existe pas', async () => {
+      pool.query.mockResolvedValueOnce([[]]);
+      
+      const result = await getUser('nonexistent@example.com');
+      
+      expect(result).toBeUndefined();
+    });
+  });
+
+  
+  describe('createUser', () => {
+    test('devrait créer un utilisateur et retourner ses données', async () => {
+      const mockUser = { id: 'new@example.com', username: 'New User', password: 'password123' };
+      pool.query.mockResolvedValueOnce([{ insertId: 1 }]);
+      pool.query.mockResolvedValueOnce([[mockUser]]);
+      
+      const result = await createUser('new@example.com', 'password123', 'New User');
+      
+      expect(pool.query).toHaveBeenCalledWith(
+        expect.stringContaining('INSERT INTO user'),
+        ['new@example.com', 'password123', 'New User']
+      );
+      expect(result).toEqual(mockUser);
+    });
+    
+    test('devrait échouer si l\'utilisateur existe déjà', async () => {
+      pool.query.mockRejectedValueOnce(new Error('Duplicate entry'));
+      
+      await expect(createUser('existing@example.com', 'password', 'User')).rejects.toThrow('Duplicate entry');
+    });
+  });
+
+  
+  describe('deleteUser', () => {
+    test('devrait supprimer un utilisateur existant', async () => {
+      pool.query.mockResolvedValueOnce([{ affectedRows: 1 }]);
+      
+      const result = await deleteUser('test@example.com');
+      
+      expect(pool.query).toHaveBeenCalledWith(
+        expect.stringContaining('DELETE FROM user WHERE id = ?'),
+        ['test@example.com']
+      );
+      expect(result.affectedRows).toBe(1);
+    });
+    
+    test('devrait retourner 0 affected rows si l\'utilisateur n\'existe pas', async () => {
+      pool.query.mockResolvedValueOnce([{ affectedRows: 0 }]);
+      
+      const result = await deleteUser('nonexistent@example.com');
+      
+      expect(result.affectedRows).toBe(0);
+    });
+  });
+
+  
+  describe('modifyUsername', () => {
+    test('devrait modifier le nom d\'utilisateur', async () => {
+      pool.query.mockResolvedValueOnce([{ affectedRows: 1 }]);
+      
+      const result = await modifyUsername('test@example.com', 'New Username');
+      
+      expect(pool.query).toHaveBeenCalledWith(
+        expect.stringContaining('UPDATE user SET username = ? WHERE id = ?'),
+        ['New Username', 'test@example.com']
+      );
+      expect(result.affectedRows).toBe(1);
+    });
+    
+    test('devrait échouer si l\'utilisateur n\'existe pas', async () => {
+      pool.query.mockResolvedValueOnce([{ affectedRows: 0 }]);
+      
+      const result = await modifyUsername('nonexistent@example.com', 'New Username');
+      
+      expect(result.affectedRows).toBe(0);
+    });
+  });
+
+  
+  describe('modifyPassword', () => {
+    test('devrait modifier le mot de passe avec des identifiants valides', async () => {
+      pool.query.mockResolvedValueOnce([{ affectedRows: 1 }]);
+      
+      const result = await modifyPassword('test@example.com', 'oldPassword', 'newPassword');
+      
+      expect(pool.query).toHaveBeenCalledWith(
+        expect.stringContaining('UPDATE user SET password = ? WHERE id = ? AND password = ?'),
+        ['newPassword', 'test@example.com', 'oldPassword']
+      );
+      expect(result.affectedRows).toBe(1);
+    });
+    
+    test('devrait échouer si l\'ancien mot de passe est incorrect', async () => {
+      pool.query.mockResolvedValueOnce([{ affectedRows: 0 }]);
+      
+      const result = await modifyPassword('test@example.com', 'wrongPassword', 'newPassword');
+      
+      expect(result.affectedRows).toBe(0);
+    });
+  }); 
+}); import pool from './database.js';
+
+/**
+ * @module user
+ */
+
+/**
+ * Vérifie si un utilisateur existe avec l'identifiant et le mot de passe donnés.
+ * @async
+ * @param {string} id - Identifiant de l'utilisateur.
+ * @param {string} pwd - Mot de passe.
+ * @returns {Promise<boolean>} True si l'utilisateur existe, sinon false.
+ */
+export async function existsUser(id, pwd){
+    const [[result]] = await pool.query(`
+        SELECT COUNT(*) AS count
+        FROM user
+        WHERE id = ?
+        AND pwd = ?`, [id, pwd])
+    //console.log(result.count)
+    if (result.count === 1) return true
+    return false
+}
+
+
+/**
+ * Récupère les informations d'un utilisateur.
+ * @async
+ * @param {string} id - Identifiant de l'utilisateur.
+ * @returns {Promise<Object>} Objet utilisateur { id, pwd, username }.
+ */
+export const getUser = async (id) => {
+    const [user] = await pool.query(
+      `SELECT id, pwd, username 
+       FROM user
+       WHERE id = ?`, [id])
+    return user[0] // Returns { id, pwd, username }
+  };
+
+/**
+ * Crée un nouvel utilisateur.
+ * @async
+ * @param {string} id - Identifiant de l'utilisateur.
+ * @param {string} pwd - Mot de passe.
+ * @param {string} username - Nom d'utilisateur.
+ * @returns {Promise<Object>} L'utilisateur créé.
+ */
+export async function createUser(id, pwd, username){
+    const [result] = await pool.query(`   
+        INSERT INTO user (id, pwd, username)
+        VALUES (?, ?, ?)
+    `, [id, pwd, username])
+    return getUser(id)
+}
+
+/**
+ * Supprime un utilisateur par son identifiant.
+ * @async
+ * @param {string} id - Identifiant de l'utilisateur.
+ * @returns {Promise<Object>} Résultat de la suppression.
+ */
+export async function deleteUser(id){
+    const [result] = await pool.query(`   
+        DELETE FROM user
+        WHERE id = ?
+        ` ,[id])
+    return result 
+}
+
+/**
+ * Modifie le nom d'utilisateur.
+ * @async
+ * @param {string} id - Identifiant de l'utilisateur.
+ * @param {string} username - Nouveau nom d'utilisateur.
+ * @returns {Promise<Object>} Résultat de la modification.
+ */
+export async function modifyUsername(id, username){
+    const [result] = await pool.query(`
+        UPDATE user
+        SET username = ?
+        WHERE id = ?;
+        `,[username, id])
+    return result 
+}
+
+import {getComment} from "./comments.js"; 
+
+/**
+ * Récupère le nom d'utilisateur à partir de l'identifiant d'un commentaire.
+ * @async
+ * @param {number} commentId - Identifiant du commentaire.
+ * @returns {Promise<string>} Nom d'utilisateur associé au commentaire.
+ */
+export async function getUsernameByComment(commentId){
+    const comment = await getComment(commentId);
+    const userId = comment.userId;
+    const [result] = await pool.query(  
+    `SELECT username FROM user WHERE id = ?`, 
+    [userId])
+    return result
+}
+
+/**
+ * Modifie le mot de passe de l'utilisateur.
+ * @async
+ * @param {string} id - Identifiant de l'utilisateur.
+ * @param {string} currentpwd - Ancien mot de passe.
+ * @param {string} newpwd - Nouveau mot de passe.
+ * @returns {Promise<Object>} Résultat de la modification.
+ */
+export async function modifyPassword(id, currentpwd, newpwd){
+    const [result] = await pool.query(`
+        UPDATE user
+        SET pwd = ?
+        WHERE id = ? AND pwd = ?;
+        `,[newpwd, id, currentpwd])
+    return result 
+}
+
+// Exemples de requêtes
+/*
+
+const createPaul = await createUser("paul.emptoz@telecom-sudparis.eu", "modepassestylé", "Paulo")
+console.log(createPaul)
+
+
+const modifyPaul = await modifyUsername("paul.emptoz@telecom-sudparis.eu", "Paulochon")
+const getPaul = await getUser("paul.emptoz@telecom-sudparis.eu")
+console.log(getPaul)
+
+const modifypasswordPaul = await modifyPassword("paul.emptoz@telecom-sudparis.eu", "modepassestylé", "nouveaumdpstylé")
+const getPaul2 = await getUser("paul.emptoz@telecom-sudparis.eu")
+console.log(getPaul2)
+
+//const deletePaul = await deleteUser("paul.emptoz@telecom-sudparis.eu")
+//console.log("L'utilisateur a été supprimé")
+
+process.exit() 
+
+*/
+
+//console.log(await existsUser("martin.kirilov-lilov@telecom-sudpars.eu", "1234"))
+
+// const createMartin = await createUser("martin.kirilov-lilov@telecom-sudparis.eu", "1234", "Martini")
+
+// console.log(await getUsernameByComment(8))
