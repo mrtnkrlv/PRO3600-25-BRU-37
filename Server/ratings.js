@@ -167,5 +167,6 @@ export { addOrUpdateRating, removeRating, getUserRating, getAverageRating };
   } finally {
     pool.end(); // Fermer le pool après utilisation.
   }
+
 })();
-*/
+

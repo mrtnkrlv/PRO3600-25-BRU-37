@@ -1,16 +1,42 @@
+/**
+ * @module app
+ */
+
+/**
+ * @file app.js
+ * @description Point d'entrée principal de l'application web PRO3600.
+ * Configure le serveur Express, les middlewares, les routes principales et la gestion des sessions.
+ */
+
 import express from 'express'
 import pool from './Server/database.js';
 const app = express()
 
-app.set('view engine', 'ejs');  // Set EJS as template engine
-app.set('views', './views');    // Specify views directory (if not default)
+/**
+ * Définit EJS comme moteur de templates.
+ */
+app.set('view engine', 'ejs'); 
 
-// Middleware for handling form submissions 
+/**
+ * Définit le dossier des vues.
+ */
+app.set('views', './views');    
+
+/**
+ * Middleware pour gérer l'encodage des formulaires HTML.
+ */
 app.use(express.urlencoded({ extended: true }));
+
+/**
+ * Middleware pour parser les requêtes JSON.
+ */
 app.use(express.json());
 
 import session from 'express-session';
 
+/**
+ * Configuration de la session utilisateur.
+ */
 app.use(session({
   secret: 'random_string12345', // Need to replace this with a random string
   resave: false,
@@ -18,14 +44,22 @@ app.use(session({
   cookie: { secure: false } // Set at false right now because using HTTP rather than HTTPS
 }));
 
-// Middleware to check login status
+/**
+ * Middleware de vérification d'authentification.
+ * Redirige vers /login si l'utilisateur n'est pas connecté.
+ * @param {Request} req
+ * @param {Response} res
+ * @param {Function} next
+ */
 const checkAuth = (req, res, next) => {
   if (!req.session.user) return res.redirect('/login');
   next();
 };
 
 
-// Makes user data available to all templates
+/**
+ * Middleware pour rendre l'utilisateur disponible dans toutes les vues.
+ */
 app.use((req, res, next) => {
     res.locals.user = req.session.user;
     next();
@@ -50,11 +84,15 @@ import { existsUser,
 
 // ———————————————————————————————————————————————————————————— // 
 
-app.get('/homepage', (req,res) => {
+
+import RouteCache from './Server/RouteCache.js'   //On importe le ficher associé au cache pour le contenu statique
+
+app.get('/homepage', RouteCache(300), (req,res) => {
     res.render("homepage.ejs")
 })
 
-app.get('/plats', async (req,res) => {
+app.get('/plats', RouteCache(300), async (req,res) => {
+
     const meals = await getMeals()
     //console.log(meals)
     //Get comments WITH usernames via SQL JOIN
@@ -68,18 +106,25 @@ app.get('/plats', async (req,res) => {
     })
 })
 
+/**
+ * Route: Affiche le compte utilisateur (nécessite l'authentification).
+ */
 app.get('/account', checkAuth, async (req, res) => {
     const user = await getUser(req.session.user.id); // Fetch latest data
     res.render('account', { user }); // Pass user object
 });
 
 // GET route to display the login form
-app.get('/login', (req, res) => {
+app.get('/login', RouteCache(300), (req, res) => {
+
   res.render("login.ejs", {
     accountExists: null // Initially no check has been done
   });
 });
 
+/**
+ * Route: Gère la connexion utilisateur.
+ */
 app.post('/login', async (req, res) => {
     const { email, pwd } = req.body; // Use "email" to match form input name
   
@@ -97,6 +142,9 @@ app.post('/login', async (req, res) => {
     res.render('login', { error: 'Invalid credentials' });
 });
 
+/**
+ * Route: Déconnexion utilisateur.
+ */
 app.get('/logout', (req, res) => {
     req.session.destroy();
     res.redirect('/homepage');
@@ -125,14 +173,22 @@ app.post('/plats', async (req,res) => {
 
 // ———————————————————————————————————————————————————————————— // 
 
-
+/**
+ * Sert les fichiers statiques du dossier "public".
+ */
 app.use(express.static("public"))
 
+/**
+ * Middleware de gestion des erreurs.
+ */
 app.use((err, req, res, next) => {
     console.error(err.stack)
     res.status(500).send('Something broke!')
   })
 
+/**
+ * Lance le serveur sur le port 8080.
+ */
 app.listen(8080, () => {
     console.log("Server is running on port 8080")
 })

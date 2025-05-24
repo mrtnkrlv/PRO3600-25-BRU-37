@@ -144,3 +144,4 @@ process.exit()
 // const createMartin = await createUser("martin.kirilov-lilov@telecom-sudparis.eu", "1234", "Martini")
 
 // console.log(await getUsernameByComment(8))
+

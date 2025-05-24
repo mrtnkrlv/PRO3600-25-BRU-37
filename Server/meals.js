@@ -188,12 +188,12 @@ async function updateMealPosition(mealId, newPosition) {
     );
 
     await connection.commit();
-    console.log(`✅ Position du plat avec ID ${mealId} mise à jour à ${newPosition}`);
+    console.log(`Position du plat avec ID ${mealId} mise à jour à ${newPosition}`);
     return await getMeal(mealId); // Retourne le plat mis à jour
 
   } catch (error) {
     await connection.rollback();
-    console.error(`❌ Erreur lors de la modification de la position :`, error.message);
+    console.error(`Erreur lors de la modification de la position :`, error.message);
     throw error;
   } finally {
     connection.release();
@@ -217,9 +217,9 @@ async function insertTestMeals() {
   
     for (const meal of testMeals) {
         try { const result = await addMeal(meal.mealId, meal.mealName, meal.positionInWeek);
-        console.log(`✅ ${meal.mealName} ajouté :`, result[0]);
+        console.log(`${meal.mealName} ajouté :`, result[0]);
       } catch (error) {
-        console.error(`❌ Erreur lors de l'ajout de ${meal.mealName} :`, error.message);
+        console.error(`Erreur lors de l'ajout de ${meal.mealName} :`, error.message);
       }
     }
   
