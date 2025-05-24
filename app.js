@@ -85,18 +85,14 @@ import { existsUser,
 // ———————————————————————————————————————————————————————————— // 
 
 
-/**
- * Route: Page d'accueil.
- * Utilise un cache de 300 secondes.
- */
-app.get('/homepage', (req,res) => {
+import RouteCache from './Server/RouteCache.js'   //On importe le ficher associé au cache pour le contenu statique
+
+app.get('/homepage', RouteCache(300), (req,res) => {
     res.render("homepage.ejs")
 })
 
-/**
- * Route: Affiche la liste des plats.
- */
-app.get('/plats', async (req,res) => {
+app.get('/plats', RouteCache(300), async (req,res) => {
+
     const meals = await getMeals()
     //console.log(meals)
     //Get comments WITH usernames via SQL JOIN
@@ -118,10 +114,9 @@ app.get('/account', checkAuth, async (req, res) => {
     res.render('account', { user }); // Pass user object
 });
 
-/**
- * Route: Affiche le formulaire de connexion.
- */
-app.get('/login', (req, res) => {
+// GET route to display the login form
+app.get('/login', RouteCache(300), (req, res) => {
+
   res.render("login.ejs", {
     accountExists: null // Initially no check has been done
   });

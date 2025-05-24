@@ -1,4 +1,19 @@
+/**
+ * @fileoverview
+ * Service de persistance & cache des commentaires.
+ *
+ * - La base de données est un pool MySQL/MariaDB (driver : **mysql2/promise**).
+ * - Un cache **LRU** en mémoire (taille = 1000 entrées) est utilisé pour
+ *   accélérer la lecture d’un commentaire individuel.
+ *
+ * @module Comments
+ */
+
 import pool from './database.js';
+import LRUCache from '../LRUcache.js';
+
+/** @constant {LRUCache<string|number, object>} */
+const commentCache = new LRUCache(1000)
 
 /**
  * @module comments
@@ -11,35 +26,48 @@ import pool from './database.js';
  * @throws {Error} En cas d'erreur lors de la récupération.
  */
 export async function getComments() {
+
     try {
         const [result] = await pool.query(`
             SELECT *
             FROM comments`);
-            return result; 
+            return result
     } catch (error) {
-        console.error(`Erreur lors de la récupération des commentaires`);
+        console.error(`Erreur lors de la récupération des commentaires`)
         throw error; // Propagation de l'erreur pour gestion en amont`)
     }
 }
 
 /**
  * Récupère un commentaire par son identifiant.
+ * Tente d'abord le cache LRU puis la base de données si nécessaire.
  * @async
  * @param {number} commentId - Identifiant du commentaire.
  * @returns {Promise<Object>} Le commentaire trouvé.
  * @throws {Error} En cas d'erreur ou si le commentaire n'existe pas.
  */
 export async function getComment(commentId) {
+    const cachedComment = commentCache.get(commentId)
+    if (cachedComment) {
+         return cachedComment
+    }
     try {
-        const [result] = await pool.query(`
+        const [rows] = await pool.query(`
             SELECT *
             FROM comments
             WHERE commentId = ?
-        `, [commentId]);
-        return result[0]; // Retourne le premier résultat (un seul commentaire)
-    } catch (error) {
-        console.error(`Erreur lors de la récupération du commentaire ${commentId} : ${error.message}`);
-        throw error; // Propagation de l'erreur pour gestion en amont
+        `, [commentId])
+         const comment = rows[0]
+    if (comment) {
+      commentCache.set(commentId, comment);
+        return comment
+      }
+     } // undefined si aucun résultat
+    catch (error) {
+    console.error(
+      `Erreur lors de la récupération du commentaire ${commentId} : ${error.message}`,
+    );
+    throw error;   
     }
 }
 
@@ -74,6 +102,7 @@ export async function deleteComment(commentId){
         DELETE FROM comments
         WHERE commentId = ?
         ` ,[commentId])
+    commentCache.map.delete(commentID)   //On supprime le commentaire du cache
     return result 
 }
 
@@ -84,7 +113,7 @@ export async function deleteComment(commentId){
  * @returns {Promise<Array>} Liste des commentaires du plat.
  */
 export async function getCommentsByMeal(mealId) {
-    const query = `SELECT * FROM comments WHERE mealId = ?`;
+    const query = `SELECT * FROM comments WHERE mealId = ?`
     const [tab] = await pool.query(query, [mealId]);
     return tab;
 }
@@ -99,11 +128,11 @@ export async function getCommentsByUser(userId) {
     try {
         const [result] = await pool.query(`
             SELECT * FROM comments WHERE commentId = ?
-        `, [commentId]);
-        return result[0];
+        `, [commentId])
+        return result[0]
     } catch (error) {
-        console.error(`Erreur lors de la récupération du commentaire : ${error.message}`);
-        throw error;
+        console.error(`Erreur lors de la récupération du commentaire : ${error.message}`)
+        throw error
     }
 }
 
@@ -115,9 +144,9 @@ export async function getCommentsByUser(userId) {
  * @returns {Promise<Object>} Message de succès.
  */
 export async function updateComment(commentId, newContent) {
-    const query = `UPDATE comments SET content = ? WHERE commentsId = ?`;
-    await pool.query(query, [newContent, commentId]);
-    return { message: 'Comments updated successfuly' };
+    const query = `UPDATE comments SET content = ? WHERE commentsId = ?`
+    await pool.query(query, [newContent, commentId])
+    return { message: 'Comments updated successfuly' }
 }
 
 
