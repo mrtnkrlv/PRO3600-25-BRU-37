@@ -83,6 +83,7 @@ async function userExists(userId) {
   return exists;
 }
 
+
 /**
  * Récupère tous les identifiants de plats likés par un utilisateur, en
  * consultant d’abord le cache LRU.
@@ -106,6 +107,7 @@ export async function getUserLikes(userId) {
   return likes;
 }
 
+export { addLikeToMeal, removeLikeFromMeal };
 
 /**
  * Ajoute un like pour un plat donné.
@@ -205,5 +207,6 @@ export async function removeLikeFromMeal(mealId, userId) {
 
   console.log('Like retiré');
   return { success: true, message: 'Like retiré avec succès' };
+
 }
 

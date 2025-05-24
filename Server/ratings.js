@@ -141,6 +141,9 @@ async function getAverageRating(mealId) {
   }
 }
 
+export { addOrUpdateRating, removeRating, getUserRating, getAverageRating };
+
+/*
 // Exemple d'utilisation des fonctions :
 (async () => {
   try {
@@ -164,4 +167,6 @@ async function getAverageRating(mealId) {
   } finally {
     pool.end(); // Fermer le pool après utilisation.
   }
+
 })();
+
