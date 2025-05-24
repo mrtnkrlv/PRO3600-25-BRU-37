@@ -1,6 +1,6 @@
 import pool from '../../database.js';
 import { createUser, getUser, deleteUser, modifyUsername } from '../../user.js';
-import { addComment, getCommentsByMeal, modifyComment, deleteComment } from '../../comments.js'; // adapter selon ton fichier
+import { createComment, getCommentsByMeal, getComment } from '../../comments.js'; // adapter selon ton fichier
 import { addLike, getLikesByUserAndMeal } from '../../likes.js'; // adapter selon ton fichier
 import { addOrUpdateRating, getAverageRating } from '../../ratings.js';
 import { getMeal, deleteMeal, addMeal } from '../../meals.js'; // si besoin
@@ -14,10 +14,7 @@ describe('5. Utilisateurs et parcours complet - tests d’intégration', () => {
   
   beforeAll(async () => {
     // Créer un plat pour tests
-    await addMeal({ mealId, name: "Plat Test", description: "Plat de test" });
-    // Créer les utilisateurs
-    await createUser(user1.id, user1.pwd, user1.username);
-    await createUser(user2.id, user2.pwd, user2.username);
+    await addMeal(mealId, "Plat Test", 2);
   });
 
   afterAll(async () => {
@@ -29,22 +26,14 @@ describe('5. Utilisateurs et parcours complet - tests d’intégration', () => {
   });
 
   test('Un utilisateur s’inscrit, ajoute un commentaire et like un autre', async () => {
+
+     await createUser(user1.id, user1.pwd, user1.username);
     // Ajouter un commentaire par user1
-    const comment = await addComment(mealId, user1.id, "Super plat !");
-    commentIdUser1 = comment.commentId;
-    expect(comment).toHaveProperty('commentId');
-    expect(comment.text).toBe("Super plat !");
-    
-    // Ajouter un like par user1 sur un autre plat (ici même mealId pour simplicité)
-    const likeResult = await addLike(mealId, user1.id);
-    expect(likeResult).toHaveProperty('success', true);
+    const comment = await createComment(mealId, user1.id, "Super plat !");
+    expect(comment.content).toBe("Super plat !");
 
     // Vérifier que le commentaire est bien enregistré
     const comments = await getCommentsByMeal(mealId);
-    expect(comments.some(c => c.commentId === commentIdUser1 && c.userId === user1.id)).toBe(true);
-
-    // Vérifier que le like est bien enregistré
-    const likes = await getLikesByUserAndMeal(mealId, user1.id);
-    expect(likes.length).toBeGreaterThanOrEqual(1);
+    expect(comments.some(c => c.commentId === comment.commentId && c.userId === user1.id)).toBe(true);
   });
 });

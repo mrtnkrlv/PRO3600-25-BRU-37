@@ -2,7 +2,7 @@ import { addOrUpdateRating, removeRating, getUserRating, getAverageRating } from
 import pool from '../../database.js';
 
 beforeEach(async () => {
-  //Crée un utilisateur et un plat de test
+  //Créer un utilisateur et un plat de test
   await pool.query("INSERT IGNORE INTO user (id, pwd, username) VALUES (?, ?, ?)", ['test_id', 'pwd', 'test_user']);
   await pool.query("INSERT IGNORE INTO meals (mealId, mealName) VALUES (?, ?)", [1, 'test_meal']);
 });
@@ -22,16 +22,16 @@ afterAll(async () => {
 });
 
 //Tests de addOrUpdateRating
-describe('Tests de addOrUpdateRating', () => {
-  test('Retourne une erreur si la note est invalide (<1)', async () => {
+describe("Tests de addOrUpdateRating", () => {
+  test("Retourne une erreur si la note est invalide (<1)", async () => {
     await expect(addOrUpdateRating(1, 'test_id', 0)).rejects.toThrow("La note doit être un entier entre 1 et 5.");
   });
 
-  test('Retourne une erreur si la note est invalide (>5)', async () => {
+  test("Retourne une erreur si la note est invalide (>5)", async () => {
     await expect(addOrUpdateRating(1, 'test_id', 6)).rejects.toThrow("La note doit être un entier entre 1 et 5.");
   });
 
-  test('Retourne une erreur si le plat est introuvable', async () => {
+  test("Retourne une erreur si le plat est introuvable", async () => {
     await expect(addOrUpdateRating(-1, 'test_id', 4)).rejects.toThrow("Plat introuvable.");
   });
 
@@ -39,21 +39,23 @@ describe('Tests de addOrUpdateRating', () => {
     await expect(addOrUpdateRating(1, 'unknown_user', 4)).rejects.toThrow("Utilisateur introuvable.");
   });
 
-  test('Ajoute une nouvelle note et met à jour la moyenne', async () => {
+  test("Ajoute une nouvelle note et met à jour la moyenne", async () => {
     const result = await addOrUpdateRating(1, 'test_id', 4);
     expect(result).toEqual({ success: true, message: "Note ajoutée." });
 
+    // Vérifie que la base de données contient bien la bonne moyenne et le bon compteur
     const [tab] = await pool.query("SELECT averageRating, ratingCount FROM meals WHERE mealId = 1");
     expect(Number(tab[0].averageRating)).toBe(4);
     expect(tab[0].ratingCount).toBe(1);
   });
 
-  test('Met à jour une note existante', async () => {
+  test("Met à jour une note existante", async () => {
     await addOrUpdateRating(1, 'test_id', 3);
     const result = await addOrUpdateRating(1, 'test_id', 5);
 
     expect(result).toEqual({ success: true, message: "Note mise à jour." });
 
+    // Vérifie que la moyenne est bien mise à jour
     const [tab] = await pool.query("SELECT averageRating, ratingCount FROM meals WHERE mealId = 1");
     expect(Number(tab[0].averageRating)).toBe(5);
     expect(tab[0].ratingCount).toBe(1);
@@ -61,8 +63,8 @@ describe('Tests de addOrUpdateRating', () => {
 });
 
 //Tests de removeRating
-describe('Tests de removeRating', () => {
-  test('Retourne une erreur si le plat est introuvable', async () => {
+describe("Tests de removeRating", () => {
+  test("Retourne une erreur si le plat est introuvable", async () => {
     await expect(removeRating(-1, 'test_id')).rejects.toThrow("Plat introuvable.");
   });
 
@@ -70,12 +72,13 @@ describe('Tests de removeRating', () => {
     await expect(removeRating(1, 'test_id')).rejects.toThrow("Note inexistante pour ce plat et cet utilisateur.");
   });
 
-  test('Supprime une note et met à jour la moyenne', async () => {
+  test("Supprime une note et met à jour la moyenne", async () => {
     await addOrUpdateRating(1, 'test_id', 4);
     const result = await removeRating(1, 'test_id');
 
     expect(result).toEqual({ success: true, message: "Note supprimée." });
 
+    // Vérifie que la moyenne et le compteur sont bien remis à zéro
     const [tab] = await pool.query("SELECT averageRating, ratingCount FROM meals WHERE mealId = 1");
     expect(Number(tab[0].averageRating)).toBe(0);
     expect(tab[0].ratingCount).toBe(0);
@@ -83,13 +86,13 @@ describe('Tests de removeRating', () => {
 });
 
 //Tests de getUserRating
-describe('Tests de getUserRating', () => {
+describe("Tests de getUserRating", () => {
   test("Retourne null si l'utilisateur n'a pas noté", async () => {
     const rating = await getUserRating(1, 'test_id');
     expect(rating).toBeNull();
   });
 
-  test('Retourne la note enregistrée', async () => {
+  test("Retourne la note enregistrée", async () => {
     await addOrUpdateRating(1, 'test_id', 5);
     const rating = await getUserRating(1, 'test_id');
     expect(rating).toBe(5);
@@ -97,13 +100,13 @@ describe('Tests de getUserRating', () => {
 });
 
 //Tests de getAverageRating
-describe('Tests de getAverageRating', () => {
-  test('Retourne null si aucun vote', async () => {
+describe("Tests de getAverageRating", () => {
+  test("Retourne null si aucune note", async () => {
     const avg = await getAverageRating(1);
     expect(avg).toBeNull();
   });
 
-  test('Retourne la moyenne correcte', async () => {
+  test("Retourne la moyenne correcte", async () => {
     await addOrUpdateRating(1, 'test_id', 4);
     const avg = await getAverageRating(1);
     expect(Number(avg)).toBe(4);
