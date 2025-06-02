@@ -91,7 +91,7 @@ app.get('/homepage', RouteCache(300), (req,res) => {
     res.render("homepage.ejs")
 })
 
-app.get('/plats', RouteCache(300), async (req,res) => {
+app.get('/plats', async (req,res) => {
 
     const meals = await getMeals()
     //console.log(meals)
