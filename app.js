@@ -87,7 +87,7 @@ import { existsUser,
 
 import RouteCache from './Server/RouteCache.js'   //On importe le ficher associé au cache pour le contenu statique
 
-app.get('/homepage', RouteCache(300), (req,res) => {
+app.get('/homepage', (req,res) => {
     res.render("homepage.ejs")
 })
 
