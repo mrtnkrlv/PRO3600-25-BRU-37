@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Module: app</title>
+    <title>JSDoc: Class: exports</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Module: app</h1>
+    <h1 class="page-title">Class: exports</h1>
 
     
 
@@ -28,6 +28,7 @@
 
 <header>
     
+        <h2><span class="attribs"><span class="type-signature"></span></span>exports<span class="signature">(capacity)</span><span class="type-signature"></span></h2>
         
     
 </header>
@@ -37,44 +38,15 @@
     
         
 
-        
-    
-    </div>
-
     
 
     
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-        <h3 class="subsection-title">Methods</h3>
-
-        
-            
-
-    
-
-    
-    <h4 class="name" id="~checkAuth"><span class="type-signature">(inner) </span>checkAuth<span class="signature">(req, res, next)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="exports"><span class="type-signature"></span>new exports<span class="signature">(capacity)</span><span class="type-signature"></span></h4>
     
 
     
 
 
-
-<div class="description">
-    Middleware de vérification d'authentification.
-Redirige vers /login si l'utilisateur n'est pas connecté.
-</div>
 
 
 
@@ -99,6 +71,8 @@ Redirige vers /login si l'utilisateur n'est pas connecté.
         
 
         
+        <th>Default</th>
+        
 
         <th class="last">Description</th>
     </tr>
@@ -109,13 +83,13 @@ Redirige vers /login si l'utilisateur n'est pas connecté.
 
         <tr>
             
-                <td class="name"><code>req</code></td>
+                <td class="name"><code>capacity</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">Request</span>
+<span class="param-type">number</span>
 
 
             
@@ -124,54 +98,14 @@ Redirige vers /login si l'utilisateur n'est pas connecté.
             
 
             
-
-            <td class="description last"></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>res</code></td>
-            
-
-            <td class="type">
-            
+                <td class="default">
                 
-<span class="param-type">Response</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>next</code></td>
-            
-
-            <td class="type">
-            
+                    100
                 
-<span class="param-type">function</span>
-
-
-            
-            </td>
-
+                </td>
             
 
-            
-
-            <td class="description last"></td>
+            <td class="description last">capacité max du cache LRU</td>
         </tr>
 
     
@@ -212,7 +146,7 @@ Redirige vers /login si l'utilisateur n'est pas connecté.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="app.js.html">app.js</a>, <a href="app.js.html#line54">line 54</a>
+        <a href="LRUcache.js.html">LRUcache.js</a>, <a href="LRUcache.js.html#line5">line 5</a>
     </li></ul></dd>
     
 
@@ -242,7 +176,23 @@ Redirige vers /login si l'utilisateur n'est pas connecté.
 
 
 
-        
+    
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
     
 
     
