@@ -1,5 +1,3 @@
-const express = require('express');
-
 /**
  * @fileoverview
  * Middleware de mise en cache HTTP simple, basé sur **node-cache**.
